@@ -19,7 +19,7 @@ def mapCallback(map_msg):
 	global p_start, p_end, sec
 	
 	#print("received map")
-	obs = map2obs(map_msg, 0.8)
+	obs = map2obs(map_msg, 80)
 	
 	if recalc_trajectory:
 		#params path
