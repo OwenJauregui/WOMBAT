@@ -37,6 +37,7 @@ srv/_*.py
 *.pyc
 qtcreator-*
 *.user
+*/.catkin_tools/
 
 /planning/cfg
 /planning/docs
