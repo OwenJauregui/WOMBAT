@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #ros
 import rospy
@@ -13,7 +13,7 @@ def RawPoseCallback(raw_pose):
     #states
     global q, x_hat
     #model
-    global D, Phi, A
+    global A
     #kalman
     global Q,R,Ri,H,Ht,Z,P,K
     #ROS variables
@@ -21,9 +21,9 @@ def RawPoseCallback(raw_pose):
     #time
     global t
 
-    q[0,0] = raw_pose.pose.position.x
-    q[1,0] = raw_pose.pose.position.y
-    q[2,0] = raw_pose.pose.position.theta
+    q[0,0] = raw_pose.position.x
+    q[1,0] = raw_pose.position.y
+    q[2,0] = raw_pose.position.theta
 
     #Update time
     temp = rospy.Time.now()
@@ -31,7 +31,7 @@ def RawPoseCallback(raw_pose):
     t = temp
 
     #kalman
-    x_hat += (D@x_hat + K@(z - H@x_hat))*dt
+    x_hat += (A@x_hat + K@(z - H@x_hat))*dt
     P += (Q - K@H@P)*dt 
 
     #update values
@@ -52,7 +52,7 @@ def main():
     #states
     global q, x_hat
     #model
-    global D, Phi, A
+    global A
     #kalman
     global Q,R,Ri,H,Ht,Z,P,K
     #ROS variables
@@ -112,10 +112,13 @@ def main():
     pose = Pose2D()
     
     #oddometry subscriber
-    pose_sub = rospy.Subscriber("/Wombat/Navegation/pose_raw", Pose2D, RawPoseCallback, queue_size=10)
+    pose_sub = rospy.Subscriber("/WOMBAT/navegation/odometry", Pose2D, RawPoseCallback, queue_size=10)
     
     #estimation publisher
-    KF_pub = rospy.Publisher("/Puzzlebot/pose", Pose2D, queue_size = 10)
+    KF_pub = rospy.Publisher("/WOMBAT/navegation/pose", Pose2D, queue_size = 10)
 
     #callback
     rospy.spin()
+
+if __name__ == '__main__':
+    main()

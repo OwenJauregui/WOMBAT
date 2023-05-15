@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 #ROS dependencies
 import rospy
@@ -20,8 +20,6 @@ k = np.array([[1, 0],
               [0, 2]])
 cmd = vel_cmd()
 
-control = rospy.Publisher("/wombat/navegation/control", vel_cmd, queue_size = 10)
-
 def controlCalc():
     global q, qd, r, d, h, k, cmd, control
 
@@ -31,33 +29,37 @@ def controlCalc():
     D = np.array([[r/2*np.cos(q[2,0]) - h*r/d*np.sin(q[2,0]), r/2*np.cos(q[2,0]) + h*r/d*np.sin(q[2,0])],
                   [r/2*np.sin(q[2,0]) + h*r/d*np.cos(q[2,0]), r/2*np.sin(q[2,0]) - h*r/d*np.cos(q[2,0])]])
 
-    u = np.dot(np.linalg.inv(D),np.dot(-k,qe))
+    u = np.linalg.inv(D)@(-k@qe)
 
     cmd.wr.data = u[0, 0]
     cmd.wl.data = u[1, 0]
 
     control.publish(cmd)
 
-def newEstimation(pose_estimation):
+def newEstimationCallback(pose_estimation):
     global q
     q[0,0] = pose_estimation.x
     q[1,0] = pose_estimation.y
     q[2,0] = pose_estimation.theta
     controlCalc()
 
-def newGoal(goal_pose):
+def newGoalCallback(goal_pose):
     global qd
     qd[0,0] = goal_pose.x
     qd[1,0] = goal_pose.y
     qd[2,0] = goal_pose.theta
 
 def main():
-    
-    pose_sub = rospy.Subscriber("/wombat/navegation/estimation", Pose2D, newEstimation, queue_size = 10)
 
-    goal_sub = rospy.Subscriber("/wombat/navegation/goal", Pose2D, newGoal, queue_size = 1)
+    global control
+
     rospy.init_node("Control")
-    rate = rospy.Rate(1000)
+
+    control = rospy.Publisher("/WOMBAT/navegation/control", vel_cmd, queue_size = 10)
+
+    pose_sub = rospy.Subscriber("/WOMBAT/navegation/pose", Pose2D, newEstimationCallback, queue_size = 10)
+
+    goal_sub = rospy.Subscriber("/WOMBAT/navegation/goal", Pose2D, newGoalCallback, queue_size = 1)
     rospy.spin()
 
 if __name__ == "__main__":
