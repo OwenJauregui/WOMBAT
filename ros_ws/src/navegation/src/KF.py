@@ -3,17 +3,18 @@
 #ros
 import rospy
 from geometry_msgs.msg import Pose2D
+from std_msgs.msg import Float64
 
 #Puzzlebot
 import numpy as np
 
 #Subscriber callback
-def RawPoseCallback(raw_pose):
+def rawPoseCallback(raw_pose):
 
     #states
     global q, x_hat
     #model
-    global A
+    global A, u
     #kalman
     global Q,R,Ri,H,Ht,Z,P,K
     #ROS variables
@@ -21,21 +22,21 @@ def RawPoseCallback(raw_pose):
     #time
     global t
 
-    q[0,0] = raw_pose.position.x
-    q[1,0] = raw_pose.position.y
-    q[2,0] = raw_pose.position.theta
+    q[0,0] = raw_pose.x
+    q[1,0] = raw_pose.y
+    q[2,0] = raw_pose.theta
 
-    #Update time
+    #update time
     temp = rospy.Time.now()
-    dt = temp-t
+    dt = float(temp.nsecs - t.nsecs)/1000000000
     t = temp
-
+    
     #kalman
-    x_hat += (A@x_hat + K@(z - H@x_hat))*dt
+    x_hat += (A@u + K@(Z - H@x_hat))*dt
     P += (Q - K@H@P)*dt 
 
     #update values
-    z = H@q
+    Z = H@q
     K = P@Ht@Ri
 
     #save message
@@ -46,13 +47,21 @@ def RawPoseCallback(raw_pose):
     #publish message
     KF_pub.publish(pose)
 
+def leftCallback(vel):
+    global u
+    u[1, 0] = vel.data
+    
+def rightCallback(vel):
+    global u
+    u[0, 0] = vel.data
+
 #main
 def main():
 
     #states
     global q, x_hat
     #model
-    global A
+    global A, u
     #kalman
     global Q,R,Ri,H,Ht,Z,P,K
     #ROS variables
@@ -64,13 +73,15 @@ def main():
     rospy.init_node("KF")
 
     #parameters
-
-    r = 0.04 #wheel radius
-    d = 0.10 #distance between wheels
-    h = 0.15 #distance between center and new point
+    r = 0.05 #wheel radius
+    d = 0.08 #distance between wheels
+    h = 0.02 #distance between center and new point
     
     #             [X, Y, theta]
     q = np.array([[0.0,0.0,0.0]]).T
+
+    #             [right, left]
+    u = np.array([[0.0, 0.0]]).T
 
     #matrix
     D = np.array([[r/2*np.cos(q[2,0]) - h*r/d*np.sin(q[2,0]), r/2*np.cos(q[2,0]) + h*r/d*np.sin(q[2,0])], 
@@ -78,7 +89,7 @@ def main():
     
     Phi = np.array([[r/d, -r/d]])
 
-    A = np.concatenate(D,Phi)
+    A = np.concatenate((D,Phi))
 
     #kalman filter
     Q = np.array([[1.0, 0.0, 0.0],
@@ -112,7 +123,9 @@ def main():
     pose = Pose2D()
     
     #oddometry subscriber
-    pose_sub = rospy.Subscriber("/WOMBAT/navegation/odometry", Pose2D, RawPoseCallback, queue_size=10)
+    pose_sub  = rospy.Subscriber("/WOMBAT/navegation/odometry", Pose2D, rawPoseCallback, queue_size=10)
+    left_sub  = rospy.Subscriber("/WOMBAT/navegation/leftSpeed", Float64, leftCallback, queue_size = 1)
+    right_sub = rospy.Subscriber("/WOMBAT/navegation/rightSpeed", Float64, rightCallback, queue_size = 1)
     
     #estimation publisher
     KF_pub = rospy.Publisher("/WOMBAT/navegation/pose", Pose2D, queue_size = 10)

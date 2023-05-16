@@ -16,17 +16,28 @@ wheel_speed = np.array([[0.0, 0.0]]).T
 q           = np.array([[0.0, 0.0, 0.0]]).T
 
 def rightVelCallback(vel):
-    wheel_speed[0, 0] = vel
+    global wheel_speed
+    wheel_speed[0, 0] = vel.data
 
 def leftVelCallback(vel):
-    wheel_speed[1, 0] = vel
+    global wheel_speed
+    wheel_speed[1, 0] = vel.data
 
 def kalmanPosCallback(pos):
-    q[0, 0] = pos.position.x
-    q[1, 0] = pos.position.y
-    q[2, 0] = pos.position.theta
+    global q
+    q[0, 0] = pos.x
+    q[1, 0] = pos.y
+    q[2, 0] = pos.theta
 
 def main():
+
+    #parameters
+
+    r = 0.05 #wheel radius
+    d = 0.08 #distance between wheels
+    h = 0.02 #distance between center and new point
+
+    global q, wheel_speed, t
     
     rospy.init_node("Odometry")
 
@@ -46,8 +57,9 @@ def main():
 
     while not rospy.is_shutdown():
         
+        #update time
         temp = rospy.Time.now()
-        dt = temp - t
+        dt = float(temp.nsecs - t.nsecs)/1000000000
         t = temp
 
         A = np.array([[r/2*np.cos(q[2,0]) - h*r/d*np.sin(q[2,0]), r/2*np.cos(q[2,0]) + h*r/d*np.sin(q[2,0])],
@@ -55,13 +67,13 @@ def main():
                       [r/d, -r/d]])
 
 
-        q += A@wheel_speed*dt
+        q += (A@wheel_speed)*dt
         
-        pose.position.x     = q[0, 0]
-        pose.position.y     = q[1, 0]
-        pose.position.theta = q[2, 0]
+        pose.x     = q[0, 0]
+        pose.y     = q[1, 0]
+        pose.theta = q[2, 0]
 
-        puse_pub.publish()
+        pose_pub.publish(pose)
 
         rate.sleep()
 

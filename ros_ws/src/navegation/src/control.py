@@ -11,10 +11,10 @@ import numpy as np
 q  = np.array([[0, 0, 0]]).T
 qd = np.array([[0, 0, 0]]).T
 
-#Parameters
-r = 0.04 #wheel radius
-d = 0.10 #distance between wheels
-h = 0.15 #distance between center and new point
+#parameters
+r = 0.05 #wheel radius
+d = 0.08 #distance between wheels
+h = 0.02 #distance between center and new point
 
 k = np.array([[1, 0],
               [0, 2]])
@@ -23,7 +23,7 @@ cmd = vel_cmd()
 def controlCalc():
     global q, qd, r, d, h, k, cmd, control
 
-    qe = q[0:2] - qd
+    qe = q[0:2] - qd[0:2]
 
         #u = np.array([[1,5]]).T
     D = np.array([[r/2*np.cos(q[2,0]) - h*r/d*np.sin(q[2,0]), r/2*np.cos(q[2,0]) + h*r/d*np.sin(q[2,0])],

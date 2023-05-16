@@ -4,17 +4,33 @@
 import rospy
 from custom_msgs.msg import vel_cmd
 from std_msgs.msg import Float64
+import random
+import numpy as np
 
-wheel_vel = (0.0, 0.0)
-noise_multiplier = 0.03 
+wheel_vel = [0.0, 0.0]
+noise_multiplier = 0.2
 
 def controlCallback(cmd):
     global wheel_vel
+
+    r = 0.05
+    max_vel = 10
+    
+    max_rads = max_vel/r
+
     wheel_vel[0] = cmd.wr.data
     wheel_vel[1] = cmd.wl.data
 
+    '''if not (-max_rads < wheel_vel[0] < max_rads):
+        wheel_vel[0] = max_rads*(wheel_vel[0]/abs(wheel_vel[0]))
+    
+    if not (-max_rads < wheel_vel[1] < max_rads):
+        wheel_vel[1] = max_rads*(wheel_vel[1]/abs(wheel_vel[1]))'''
+
 def main():
-    rospy.init_node("Ruido")
+    global wheel_vel, noise_multiplier
+
+    rospy.init_node("Noise")
     rate = rospy.Rate(100)
 
     random.seed(rospy.Time.now())
