@@ -41,7 +41,7 @@ def main():
     
     rospy.init_node("Odometry")
 
-    rate = rospy.Rate(100)
+    rate = rospy.Rate(1000)
 
     pose_pub = rospy.Publisher("/WOMBAT/navegation/odometry", Pose2D, queue_size = 10)
     
@@ -59,7 +59,11 @@ def main():
         
         #update time
         temp = rospy.Time.now()
-        dt = float(temp.nsecs - t.nsecs)/1000000000
+        dt = (temp.nsecs - t.nsecs)/1000000000
+        
+        if dt<0.0: 
+            dt += 1     
+
         t = temp
 
         A = np.array([[r/2*np.cos(q[2,0]) - h*r/d*np.sin(q[2,0]), r/2*np.cos(q[2,0]) + h*r/d*np.sin(q[2,0])],
