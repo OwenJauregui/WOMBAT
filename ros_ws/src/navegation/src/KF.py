@@ -29,6 +29,8 @@ def rawPoseCallback(raw_pose):
     #update time
     temp = rospy.Time.now()
     dt = float(temp.nsecs - t.nsecs)/1000000000
+    if dt < 0:
+        dt += 1
     t = temp
     
     #kalman

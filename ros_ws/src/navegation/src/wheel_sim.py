@@ -21,11 +21,11 @@ def controlCallback(cmd):
     wheel_vel[0] = cmd.wr.data
     wheel_vel[1] = cmd.wl.data
 
-    '''if not (-max_rads < wheel_vel[0] < max_rads):
+    if not (-max_rads < wheel_vel[0] < max_rads):
         wheel_vel[0] = max_rads*(wheel_vel[0]/abs(wheel_vel[0]))
     
     if not (-max_rads < wheel_vel[1] < max_rads):
-        wheel_vel[1] = max_rads*(wheel_vel[1]/abs(wheel_vel[1]))'''
+        wheel_vel[1] = max_rads*(wheel_vel[1]/abs(wheel_vel[1]))
 
 def main():
     global wheel_vel, noise_multiplier
