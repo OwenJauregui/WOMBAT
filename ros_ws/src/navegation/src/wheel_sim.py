@@ -14,7 +14,7 @@ def controlCallback(cmd):
     global wheel_vel
 
     r = 0.05
-    max_vel = 10
+    max_vel = 1
     
     max_rads = max_vel/r
 

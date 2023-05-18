@@ -44,7 +44,8 @@ def main():
     rate = rospy.Rate(1000)
 
     pose_pub = rospy.Publisher("/WOMBAT/navegation/odometry", Pose2D, queue_size = 10)
-    
+    #rviz_pose = rospy.Publisher("WOMBAT/navegation/rvizPose", PoseStamped, queue_size=10)
+
     kf_sub   = rospy.Subscriber("/WOMBAT/navegation/pose", Pose2D, kalmanPosCallback, queue_size = 10)
 
     l_sub    = rospy.Subscriber("/WOMBAT/navegation/leftSpeed", Float64, leftVelCallback, queue_size = 10)
