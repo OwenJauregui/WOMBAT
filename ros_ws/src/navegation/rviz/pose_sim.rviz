@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+
+<launch>
+
+    <rviz>
+        <display name="WOMBAT_pose" type="rviz/PoseStamped" topic="/WOMBAT/navegation/rvizPose">
+            <property name="Frame" value="world"/>
+        </display>
+    </rviz>
+
+
+</launch>

@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+
+<launch>
+
+    <node name="odom" pkg="navegation" type="odometry.py" output="screen">
+    </node>
+    <node name="kalman" pkg="navegation" type="KF.py" output="screen">
+    </node>
+    <node name="control" pkg="navegation" type="control.py" output="screen">
+    </node>
+
+</launch>
+
