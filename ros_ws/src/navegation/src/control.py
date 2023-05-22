@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 #ROS dependencies
 import rospy
@@ -29,7 +29,7 @@ def controlCalc():
     D = np.array([[r/2*np.cos(q[2,0]) - h*r/d*np.sin(q[2,0]), r/2*np.cos(q[2,0]) + h*r/d*np.sin(q[2,0])],
                   [r/2*np.sin(q[2,0]) + h*r/d*np.cos(q[2,0]), r/2*np.sin(q[2,0]) - h*r/d*np.cos(q[2,0])]])
 
-    u = np.linalg.inv(D)@(-k@qe)
+    u = np.dot(np.linalg.inv(D),(np.dot(-k,qe)))
 
     cmd.wr.data = u[0, 0]
     cmd.wl.data = u[1, 0]

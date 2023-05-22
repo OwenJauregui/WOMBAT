@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 #ROS
 import rospy
@@ -72,7 +72,7 @@ def main():
                       [r/d, -r/d]])
 
 
-        q += (A@wheel_speed)*dt
+        q += (np.dot(A,wheel_speed))*dt
         
         pose.x     = q[0, 0]
         pose.y     = q[1, 0]

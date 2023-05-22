@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 #ros
 import rospy
@@ -34,12 +34,12 @@ def rawPoseCallback(raw_pose):
     t = temp
     
     #kalman
-    x_hat += (A@u + K@(Z - H@x_hat))*dt
-    P += (Q - K@H@P)*dt 
+    x_hat += (np.dot(A,u) + np.dot(K,(Z - np.dot(H,x_hat))))*dt
+    P += (Q - np.dot(np.dot(K,H),P))*dt 
 
     #update values
-    Z = H@q
-    K = P@Ht@Ri
+    Z = np.dot(H,q)
+    K = np.dot(np.dot(P,Ht),Ri)
 
     #save message
     pose.x = q[0]
@@ -108,13 +108,13 @@ def main():
                 [0.0, 0.0, 0.0]])
     Ht = H.T
 
-    Z = H@q
+    Z = np.dot(H,q)
 
     P = np.array([[0.0, 0.0, 0.0],
                 [0.0, 0.0, 0.0],
                 [0.0, 0.0, 0.0]])
 
-    K = P@Ht@Ri
+    K = np.dot(np.dot(P,Ht),Ri)
 
     #initial time
     t = rospy.Time.now()
