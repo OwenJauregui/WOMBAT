@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+
+<launch>
+	<group ns="navigation">
+		<rosparam file="$(find navegation)/config/robot_params.yaml"/>
+	
+		<remap from="/WOMBAT/navegation/control/wr" to="/wr"/>
+    	<remap from="/WOMBAT/navegation/control/wl" to="/wl"/>
+	    <include file="$(find navegation)/launch/nav.launch"/>
+	</group>
+</launch>

@@ -2,6 +2,7 @@
 
 #ROS dependencies
 import rospy
+from std_msgs.msg import Float32
 from custom_msgs.msg import vel_cmd
 from geometry_msgs.msg import Pose2D
 
@@ -54,8 +55,8 @@ def main():
     global control
 
     rospy.init_node("Control")
-
-    control = rospy.Publisher("/WOMBAT/navegation/control", vel_cmd, queue_size = 10)
+	
+    control = rospy.Publisher("/WOMBAT/navegation/control", vel_cmd)
 
     pose_sub = rospy.Subscriber("/WOMBAT/navegation/pose", Pose2D, newEstimationCallback, queue_size = 10)
 

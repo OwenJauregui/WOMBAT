@@ -124,10 +124,13 @@ def main():
     #message
     pose = Pose2D()
     
+    l_speed = rospy.get_param("/navigation/topics/vel_l", "/WOMBAT/navegation/leftSpeed")
+    r_speed = rospy.get_param("/navegation/topics/vel_r", "/WOMBAT/navegation/rightSpeed")
+
     #oddometry subscriber
     pose_sub  = rospy.Subscriber("/WOMBAT/navegation/odometry", Pose2D, rawPoseCallback, queue_size=10)
-    left_sub  = rospy.Subscriber("/WOMBAT/navegation/leftSpeed", Float64, leftCallback, queue_size = 1)
-    right_sub = rospy.Subscriber("/WOMBAT/navegation/rightSpeed", Float64, rightCallback, queue_size = 1)
+    left_sub  = rospy.Subscriber(l_speed, Float64, leftCallback, queue_size = 1)
+    right_sub = rospy.Subscriber(r_speed, Float64, rightCallback, queue_size = 1)
     
     #estimation publisher
     KF_pub = rospy.Publisher("/WOMBAT/navegation/pose", Pose2D, queue_size = 10)

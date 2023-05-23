@@ -1,2 +1,2 @@
-std_msgs/Float64 wr
-std_msgs/Float64 wl
+std_msgs/Float32 wr
+std_msgs/Float32 wl

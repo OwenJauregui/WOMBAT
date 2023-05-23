@@ -42,15 +42,18 @@ def main():
     rospy.init_node("Odometry")
 
     rate = rospy.Rate(1000)
-
+	
+    l_speed = rospy.get_param("/navigation/topics/vel_l", "/WOMBAT/navegation/leftSpeed")
+    r_speed = rospy.get_param("/navigation/topics/vel_r", "/WOMBAT/navegation/rightSpeed")
+	
     pose_pub = rospy.Publisher("/WOMBAT/navegation/odometry", Pose2D, queue_size = 10)
     #rviz_pose = rospy.Publisher("WOMBAT/navegation/rvizPose", PoseStamped, queue_size=10)
 
     kf_sub   = rospy.Subscriber("/WOMBAT/navegation/pose", Pose2D, kalmanPosCallback, queue_size = 10)
 
-    l_sub    = rospy.Subscriber("/WOMBAT/navegation/leftSpeed", Float64, leftVelCallback, queue_size = 10)
+    l_sub    = rospy.Subscriber(l_speed, Float64, leftVelCallback, queue_size = 10)
 
-    r_sub    = rospy.Subscriber("/WOMBAT/navegation/rightSpeed", Float64, rightVelCallback, queue_size = 10)
+    r_sub    = rospy.Subscriber(r_speed, Float64, rightVelCallback, queue_size = 10)
 
     t = rospy.Time.now()
 
