@@ -3,46 +3,31 @@ import rospy
 
 #Librerias basicas
 import numpy as np
-import cv2
 
 #custom libraries
 from vision_nodes.utils import OccGrid
-from vision_nodes.conversions import quaternion_to_euler
 
 #import msgs
 from visualization_msgs.msg import Marker, MarkerArray
-from nav_msgs.msg import Odometry
+from geometry_msgs.msg import Pose2D
 from sensor_msgs.msg import LaserScan
 from custom_msgs.msg import GridMap, Cell
 
 #import sync msgs
 import message_filters
 
-#plot
-import matplotlib.pyplot as plt
-
-
 #Subscriber
 def LaserCallback(msg_odom, msg_laser):
 
     global grid, marker_pub, grid_pub
 
-    #oddometry msg (translation)
-    x = msg_odom.pose.pose.position.x
-    y = msg_odom.pose.pose.position.y
-    z = msg_odom.pose.pose.position.z
-
-    #oddometry msg (orientation)
-    qx = msg_odom.pose.pose.orientation.x
-    qy = msg_odom.pose.pose.orientation.y
-    qz = msg_odom.pose.pose.orientation.z
-    qw = msg_odom.pose.pose.orientation.w
-
-    #convert quaternion to euler angle
-    theta = quaternion_to_euler([qx,qy,qz,qw])
+    #bot pose
+    x = msg_odom.x
+    y = msg_odom.y
+    theta =msg_odom.theta
 
     #construct position state
-    state_odom = [x, y, theta[0]]
+    state_odom = [x, y, theta]
     #print("Oddometry" + str(state_odom))
 
     #extract laser info
@@ -82,7 +67,7 @@ def main():
     rospy.init_node("occupacy_grid")
 
     #Read point cloyd
-    input_odom = "/WOMBAT/navegation/odometry"
+    input_odom = "/WOMBAT/navegation/pose"
     input_laser = rospy.get_param("/occupacy_grid/topics/laser", "/scan")
 
     #grid parameters
@@ -110,7 +95,7 @@ def main():
     grid = OccGrid(x_g=x_grid, y_g=y_grid, d_g=d_grid)
 
     #Subscriber
-    odom_sub = message_filters.Subscriber(input_odom, Odometry)
+    odom_sub = message_filters.Subscriber(input_odom, Pose2D)
     laser_sub = message_filters.Subscriber(input_laser, LaserScan)
 
     #sync messages
