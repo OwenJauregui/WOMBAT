@@ -17,7 +17,6 @@ q           = np.array([[0.0, 0.0, 0.0]]).T
 
 def rightVelCallback(vel):
     global wheel_speed
-    print(vel.data)
     wheel_speed[0, 0] = vel.data
 
 def leftVelCallback(vel):
