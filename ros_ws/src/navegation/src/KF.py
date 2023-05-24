@@ -3,17 +3,18 @@
 #ros
 import rospy
 from geometry_msgs.msg import Pose2D
+from std_msgs.msg import Float32
 
 #Puzzlebot
 import numpy as np
 
 #Subscriber callback
-def RawPoseCallback(raw_pose):
+def rawPoseCallback(raw_pose):
 
     #states
     global q, x_hat
     #model
-    global D, Phi, A
+    global A, u
     #kalman
     global Q,R,Ri,H,Ht,Z,P,K
     #ROS variables
@@ -21,22 +22,24 @@ def RawPoseCallback(raw_pose):
     #time
     global t
 
-    q[0,0] = raw_pose.pose.position.x
-    q[1,0] = raw_pose.pose.position.y
-    q[2,0] = raw_pose.pose.position.theta
+    q[0,0] = raw_pose.x
+    q[1,0] = raw_pose.y
+    q[2,0] = raw_pose.theta
 
-    #Update time
+    #update time
     temp = rospy.Time.now()
-    dt = temp-t
+    dt = float(temp.nsecs - t.nsecs)/1000000000
+    if dt < 0:
+        dt += 1
     t = temp
-
+    
     #kalman
-    x_hat += (D@x_hat + K@(z - H@x_hat))*dt
-    P += (Q - K@H@P)*dt 
+    x_hat += (np.dot(A,u) + np.dot(K,(Z - np.dot(H,x_hat))))*dt
+    P += (Q - np.dot(np.dot(K,H),P))*dt 
 
     #update values
-    z = H@q
-    K = P@Ht@Ri
+    Z = np.dot(H,q)
+    K = np.dot(np.dot(P,Ht),Ri)
 
     #save message
     pose.x = q[0]
@@ -46,13 +49,21 @@ def RawPoseCallback(raw_pose):
     #publish message
     KF_pub.publish(pose)
 
+def leftCallback(vel):
+    global u
+    u[1, 0] = vel.data
+    
+def rightCallback(vel):
+    global u
+    u[0, 0] = vel.data
+
 #main
 def main():
 
     #states
     global q, x_hat
     #model
-    global D, Phi, A
+    global A, u
     #kalman
     global Q,R,Ri,H,Ht,Z,P,K
     #ROS variables
@@ -64,13 +75,15 @@ def main():
     rospy.init_node("KF")
 
     #parameters
-
-    r = 0.04 #wheel radius
-    d = 0.10 #distance between wheels
-    h = 0.15 #distance between center and new point
+    r = 0.05 #wheel radius
+    d = 0.08 #distance between wheels
+    h = 0.02 #distance between center and new point
     
     #             [X, Y, theta]
     q = np.array([[0.0,0.0,0.0]]).T
+
+    #             [right, left]
+    u = np.array([[0.0, 0.0]]).T
 
     #matrix
     D = np.array([[r/2*np.cos(q[2,0]) - h*r/d*np.sin(q[2,0]), r/2*np.cos(q[2,0]) + h*r/d*np.sin(q[2,0])], 
@@ -78,7 +91,7 @@ def main():
     
     Phi = np.array([[r/d, -r/d]])
 
-    A = np.concatenate(D,Phi)
+    A = np.concatenate((D,Phi))
 
     #kalman filter
     Q = np.array([[1.0, 0.0, 0.0],
@@ -95,13 +108,13 @@ def main():
                 [0.0, 0.0, 0.0]])
     Ht = H.T
 
-    Z = H@q
+    Z = np.dot(H,q)
 
     P = np.array([[0.0, 0.0, 0.0],
                 [0.0, 0.0, 0.0],
                 [0.0, 0.0, 0.0]])
 
-    K = P@Ht@Ri
+    K = np.dot(np.dot(P,Ht),Ri)
 
     #initial time
     t = rospy.Time.now()
@@ -111,11 +124,19 @@ def main():
     #message
     pose = Pose2D()
     
+    l_speed = rospy.get_param("/navigation/topics/vel_l", "/WOMBAT/navegation/leftSpeed")
+    r_speed = rospy.get_param("/navegation/topics/vel_r", "/WOMBAT/navegation/rightSpeed")
+
     #oddometry subscriber
-    pose_sub = rospy.Subscriber("/Wombat/Navegation/pose_raw", Pose2D, RawPoseCallback, queue_size=10)
+    pose_sub  = rospy.Subscriber("/WOMBAT/navegation/odometry", Pose2D, rawPoseCallback, queue_size=10)
+    left_sub  = rospy.Subscriber(l_speed, Float32, leftCallback, queue_size = 1)
+    right_sub = rospy.Subscriber(r_speed, Float32, rightCallback, queue_size = 1)
     
     #estimation publisher
-    KF_pub = rospy.Publisher("/Puzzlebot/pose", Pose2D, queue_size = 10)
+    KF_pub = rospy.Publisher("/WOMBAT/navegation/pose", Pose2D, queue_size = 10)
 
     #callback
     rospy.spin()
+
+if __name__ == '__main__':
+    main()

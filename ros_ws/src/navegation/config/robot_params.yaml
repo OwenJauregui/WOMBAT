@@ -1,0 +1,9 @@
+model_args:
+    radius: 0.05
+    distance: 0.08
+    displacement: 0.05
+topics:
+    cmd_vel_r: "/cmd_wR"
+    cmd_vel_l: "/cmd_wL"
+    vel_r: "/wr"
+    vel_l: "/wl"
