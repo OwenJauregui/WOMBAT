@@ -22,7 +22,7 @@ k = np.array([[1, 0],
 cmd = vel_cmd()
 
 def controlCalc():
-    global q, qd, r, d, h, k, cmd, control
+    global q, qd, r, d, h, k, cmd, control, left_pub, right_pub
 
     qe = q[0:2] - qd[0:2]
 
@@ -36,6 +36,9 @@ def controlCalc():
     cmd.wl.data = u[1, 0]
 
     control.publish(cmd)
+
+    left_pub.publish(cmd.wl)
+    right_pub.publish(cmd.wr)    
 
 def newEstimationCallback(pose_estimation):
     global q
@@ -52,11 +55,16 @@ def newGoalCallback(goal_pose):
 
 def main():
 
-    global control
+    global control, left_pub, right_pub
 
     rospy.init_node("Control")
 	
-    control = rospy.Publisher("/WOMBAT/navegation/control", vel_cmd)
+    l_speed = rospy.get_param("/navigation/topics/cmd_vel_l", "/WOMBAT/navegation/cmd_l")
+    r_speed = rospy.get_param("/navigation/topics/cmd_vel_r", "/WOMBAT/navegation/cmd_r")
+
+    control  = rospy.Publisher("/WOMBAT/navegation/control", vel_cmd, queue_size=1)
+    left_pub = rospy.Publisher(l_speed, Float32, queue_size=1)
+    right_pub = rospy.Publisher(r_speed, Float32, queue_size=1)
 
     pose_sub = rospy.Subscriber("/WOMBAT/navegation/pose", Pose2D, newEstimationCallback, queue_size = 10)
 

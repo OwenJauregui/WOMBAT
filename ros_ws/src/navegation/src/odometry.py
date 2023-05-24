@@ -2,14 +2,14 @@
 
 #ROS
 import rospy
-from std_msgs.msg import Float64
+from std_msgs.msg import Float32
 from geometry_msgs.msg import Pose2D
 
 #Puzzlebot
 import numpy as np
 
 #Global variables
-t = 0
+t = 0.0
 
 #Matrices
 wheel_speed = np.array([[0.0, 0.0]]).T
@@ -17,6 +17,7 @@ q           = np.array([[0.0, 0.0, 0.0]]).T
 
 def rightVelCallback(vel):
     global wheel_speed
+    print(vel.data)
     wheel_speed[0, 0] = vel.data
 
 def leftVelCallback(vel):
@@ -51,9 +52,9 @@ def main():
 
     kf_sub   = rospy.Subscriber("/WOMBAT/navegation/pose", Pose2D, kalmanPosCallback, queue_size = 10)
 
-    l_sub    = rospy.Subscriber(l_speed, Float64, leftVelCallback, queue_size = 10)
+    l_sub    = rospy.Subscriber(l_speed, Float32, leftVelCallback, queue_size = 10)
 
-    r_sub    = rospy.Subscriber(r_speed, Float64, rightVelCallback, queue_size = 10)
+    r_sub    = rospy.Subscriber(r_speed, Float32, rightVelCallback, queue_size = 10)
 
     t = rospy.Time.now()
 
@@ -63,7 +64,7 @@ def main():
         
         #update time
         temp = rospy.Time.now()
-        dt = (temp.nsecs - t.nsecs)/1000000000
+        dt = float(temp.nsecs - t.nsecs)/1000000000
         
         if dt<0.0: 
             dt += 1     
@@ -76,7 +77,7 @@ def main():
 
 
         q += (np.dot(A,wheel_speed))*dt
-        
+       
         pose.x     = q[0, 0]
         pose.y     = q[1, 0]
         pose.theta = q[2, 0]

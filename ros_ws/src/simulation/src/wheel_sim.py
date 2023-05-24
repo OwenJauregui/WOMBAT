@@ -3,7 +3,7 @@
 #ROS dependencies
 import rospy
 from custom_msgs.msg import vel_cmd
-from std_msgs.msg import Float64
+from std_msgs.msg import Float32
 import random
 import numpy as np
 
@@ -37,11 +37,11 @@ def main():
 
     control_sub = rospy.Subscriber("/WOMBAT/navegation/control", vel_cmd, controlCallback, queue_size = 10)
 
-    left_pub    = rospy.Publisher("/WOMBAT/navegation/leftSpeed", Float64, queue_size = 1)
+    left_pub    = rospy.Publisher("/WOMBAT/navegation/leftSpeed", Float32, queue_size = 1)
 
-    right_pub    = rospy.Publisher("/WOMBAT/navegation/rightSpeed", Float64, queue_size = 1)
+    right_pub    = rospy.Publisher("/WOMBAT/navegation/rightSpeed", Float32, queue_size = 1)
 
-    speed = Float64()
+    speed = Float32()
     
     while not rospy.is_shutdown():
         
