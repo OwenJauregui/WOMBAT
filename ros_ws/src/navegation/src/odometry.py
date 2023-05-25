@@ -41,7 +41,7 @@ def main():
     
     rospy.init_node("Odometry")
 
-    rate = rospy.Rate(1000)
+    rate = rospy.Rate(100)
 	
     l_speed = rospy.get_param("/navigation/topics/vel_l", "/WOMBAT/navegation/leftSpeed")
     r_speed = rospy.get_param("/navigation/topics/vel_r", "/WOMBAT/navegation/rightSpeed")
