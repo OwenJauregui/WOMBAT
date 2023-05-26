@@ -20,8 +20,8 @@
 	<!-- Spawn WOMBAT -->
 	<param name="robot_description" command="$(find xacro)/xacro --inorder $(find simulation)/urdf/wombat.xacro"/>
 
-	<arg name="x" default="0"/>
-	<arg name="y" default="0"/>
+	<arg name="x" default="0.0"/>
+	<arg name="y" default="0.0"/>
 	<arg name="z" default="0.1"/>
 
 	<node name="wombat_spawn" pkg="gazebo_ros" type="spawn_model" output="screen"
