@@ -3,10 +3,11 @@
 #ROS
 import rospy
 from std_msgs.msg import Float32
-from geometry_msgs.msg import Pose2D
+from geometry_msgs.msg import Pose2D, PoseStamped
 
 #Puzzlebot
 import numpy as np
+import math
 
 #Global variables
 t = 0.0
@@ -17,7 +18,6 @@ q           = np.array([[0.0, 0.0, 0.0]]).T
 
 def rightVelCallback(vel):
     global wheel_speed
-    print(vel.data)
     wheel_speed[0, 0] = vel.data
 
 def leftVelCallback(vel):
@@ -26,9 +26,24 @@ def leftVelCallback(vel):
 
 def kalmanPosCallback(pos):
     global q
-    q[0, 0] = pos.x
-    q[1, 0] = pos.y
-    q[2, 0] = pos.theta
+
+    #convert from quaternion to euler
+    
+    # save orientation
+    w = pos.pose.orientation.w 
+    x = pos.pose.orientation.x
+    y = pos.pose.orientation.y 
+    z = pos.pose.orientation.z 
+
+    #apply convertion
+    t1 = +2.0 * (w * z + x * y)
+    t2 = +1.0 - 2.0 * (y * y + z * z)
+    yaw = math.atan2(t1, t2)
+
+    #save states
+    q[0, 0] = pos.pose.position.x
+    q[1, 0] = pos.pose.position.y 
+    q[2, 0] = yaw
 
 def main():
 
@@ -42,7 +57,7 @@ def main():
     
     rospy.init_node("Odometry")
 
-    rate = rospy.Rate(1000)
+    rate = rospy.Rate(100)
 	
     l_speed = rospy.get_param("/navigation/topics/vel_l", "/WOMBAT/navegation/leftSpeed")
     r_speed = rospy.get_param("/navigation/topics/vel_r", "/WOMBAT/navegation/rightSpeed")
@@ -50,7 +65,7 @@ def main():
     pose_pub = rospy.Publisher("/WOMBAT/navegation/odometry", Pose2D, queue_size = 10)
     #rviz_pose = rospy.Publisher("WOMBAT/navegation/rvizPose", PoseStamped, queue_size=10)
 
-    kf_sub   = rospy.Subscriber("/WOMBAT/navegation/pose", Pose2D, kalmanPosCallback, queue_size = 10)
+    kf_sub   = rospy.Subscriber("/WOMBAT/navegation/pose", PoseStamped, kalmanPosCallback, queue_size = 10)
 
     l_sub    = rospy.Subscriber(l_speed, Float32, leftVelCallback, queue_size = 10)
 
