@@ -10,16 +10,17 @@ from geometry_msgs.msg import Pose2D, PoseStamped
 import numpy as np
 import math
 
-q  = np.array([[0, 0, 0]]).T
-qd = np.array([[0, 0, 0]]).T
+q  = np.array([[0.0, 0.0, 0.0]]).T
+qd = np.array([[0.0, 0.0, 0.0]]).T
 
 #parameters
 r = 0.05 #wheel radius
 d = 0.08 #distance between wheels
 h = 0.02 #distance between center and new point
 
-k = np.array([[1, 0],
-              [0, 2]])
+k = np.array([[0.1, 0.0],
+              [0.0, 0.1]])
+
 cmd = vel_cmd()
 
 def controlCalc():
@@ -31,7 +32,7 @@ def controlCalc():
     D = np.array([[r/2*np.cos(q[2,0]) - h*r/d*np.sin(q[2,0]), r/2*np.cos(q[2,0]) + h*r/d*np.sin(q[2,0])],
                   [r/2*np.sin(q[2,0]) + h*r/d*np.cos(q[2,0]), r/2*np.sin(q[2,0]) - h*r/d*np.cos(q[2,0])]])
 
-    u = np.dot(np.linalg.inv(D),(np.dot(-k,qe)))
+    u = np.dot(np.dot(np.linalg.inv(D),-k),qe)
 
     cmd.wr.data = u[0, 0]
     cmd.wl.data = u[1, 0]

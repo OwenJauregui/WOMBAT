@@ -18,7 +18,6 @@ q           = np.array([[0.0, 0.0, 0.0]]).T
 
 def rightVelCallback(vel):
     global wheel_speed
-    #print(vel.data)
     wheel_speed[0, 0] = vel.data
 
 def leftVelCallback(vel):
@@ -58,7 +57,7 @@ def main():
     
     rospy.init_node("Odometry")
 
-    rate = rospy.Rate(1000)
+    rate = rospy.Rate(100)
 	
     l_speed = rospy.get_param("/navigation/topics/vel_l", "/WOMBAT/navegation/leftSpeed")
     r_speed = rospy.get_param("/navigation/topics/vel_r", "/WOMBAT/navegation/rightSpeed")
