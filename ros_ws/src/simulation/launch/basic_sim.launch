@@ -4,11 +4,7 @@
 
     <include file="$(find navegation)/launch/nav.launch"/>
     
-    <node name="wheels" pkg="simulation" type="wheel_sim.py" output="screen">
-    </node>
-
-    <node name="sim" pkg="simulation" type="simulation.py" output="screen">
-    </node>
+    <node name="wheels" pkg="simulation" type="wheel_sim.py" output="screen"/>
 
     <node name="rviz_pose" pkg="rviz" type="rviz" args="-d $(find simulation)/rviz/pose_sim.rviz"/>
 
