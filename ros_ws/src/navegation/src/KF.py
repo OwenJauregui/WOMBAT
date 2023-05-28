@@ -2,8 +2,8 @@
 
 #ros
 import rospy
-from geometry_msgs.msg import Pose2D
-from std_msgs.msg import Float64
+from geometry_msgs.msg import PoseStamped, Pose2D
+from std_msgs.msg import Float32
 
 #Puzzlebot
 import numpy as np
@@ -41,10 +41,20 @@ def rawPoseCallback(raw_pose):
     Z = np.dot(H,q)
     K = np.dot(np.dot(P,Ht),Ri)
 
+    
     #save message
-    pose.x = q[0]
-    pose.y = q[1]
-    pose.theta = q[2]
+    #header
+    pose.header.frame_id = "world"
+    pose.header.stamp = t
+    #pose
+    pose.pose.position.x = raw_pose.x
+    pose.pose.position.y = raw_pose.y
+    pose.pose.position.z = 0.0
+    #orientation
+    pose.pose.orientation.w = np.cos(raw_pose.theta * 0.5)
+    pose.pose.orientation.x = 0.0
+    pose.pose.orientation.y = 0.0
+    pose.pose.orientation.z = np.sin(raw_pose.theta * 0.5)
     
     #publish message
     KF_pub.publish(pose)
@@ -122,15 +132,18 @@ def main():
     x_hat = np.array([[0.0, 0.0, 0.0]]).T
    
     #message
-    pose = Pose2D()
+    pose = PoseStamped()
     
+    l_speed = rospy.get_param("/navigation/topics/vel_l", "/WOMBAT/navegation/leftSpeed")
+    r_speed = rospy.get_param("/navegation/topics/vel_r", "/WOMBAT/navegation/rightSpeed")
+
     #oddometry subscriber
     pose_sub  = rospy.Subscriber("/WOMBAT/navegation/odometry", Pose2D, rawPoseCallback, queue_size=10)
-    left_sub  = rospy.Subscriber("/WOMBAT/navegation/leftSpeed", Float64, leftCallback, queue_size = 1)
-    right_sub = rospy.Subscriber("/WOMBAT/navegation/rightSpeed", Float64, rightCallback, queue_size = 1)
+    left_sub  = rospy.Subscriber(l_speed, Float32, leftCallback, queue_size = 1)
+    right_sub = rospy.Subscriber(r_speed, Float32, rightCallback, queue_size = 1)
     
     #estimation publisher
-    KF_pub = rospy.Publisher("/WOMBAT/navegation/pose", Pose2D, queue_size = 10)
+    KF_pub = rospy.Publisher("/WOMBAT/navegation/pose", PoseStamped, queue_size = 10)
 
     #callback
     rospy.spin()
