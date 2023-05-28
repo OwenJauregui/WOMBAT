@@ -26,6 +26,15 @@
 
 	<node name="wombat_spawn" pkg="gazebo_ros" type="spawn_model" output="screen"
 		args="-urdf -param robot_description -model wombat -x $(arg x) -y $(arg y) -z $(arg z)"/>
+    
+    <rosparam command="load" file="$(find simulation)/config/joints.yaml"/>
+    
+    <node name="wombat_controller_spawner"
+          pkg="controller_manager"
+          type="spawner"
+          args="joint_state_controller
+                left_wheel_controller
+                right_wheel_controller"/>
 
 </launch>
 

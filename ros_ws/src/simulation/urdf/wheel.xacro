@@ -1,0 +1,55 @@
+<?xml version="0.0"?>
+
+<!-- WOMBAT wheel -->
+<robot name="WOMBAT" xmlns:xacro="http://www.ros.org/wiki/xacro">
+<xacro:macro name="wheel" params="prefix rot origin">
+
+    <!-- Wheel model -->
+	<link name="${prefix}_wheel">
+		<visual>
+			<origin xyz="0 0 0" rpy="${rot}" />
+			<geometry>
+				<!-- with mesh-->
+				<mesh filename="file://${mesh_wheel}" />
+			</geometry>
+		</visual>
+
+		<collision>
+			<origin xyz="0 0 0 " rpy="${rot}" />
+			<geometry>
+				<cylinder length="${wheelHeight}" radius="${wheelRadius+0.0010032}" />
+			</geometry>
+		</collision>
+
+		<inertial>
+			<mass value="${wheelMass}" />
+			<origin xyz="0 0 0" rpy="${rot}" />
+			<xacro:wheel_inertia r="${wheelRadius}" l="${wheelHeight}" m="${wheelMass}" />
+		</inertial>
+
+	</link>
+
+	<!-- Wheel joint  -->
+
+	<joint name="base_to_${prefix}_w" type="continuous">
+		<parent link="chassis" />
+		<child link="${prefix}_wheel" />
+        <origin xyz="${origin}"/>
+		<axis xyz="0 1 0" rpy="0 0 0" />
+		<limit effort="100" velocity="20"/>
+		<joint_properties damping="0.0" friction="0.0"/>
+	</joint>
+
+	<!-- Wheel transmission -->
+	<transmission name="${prefix}_wheel_trans">
+		<type>transmission_interface/SimpleTransmission</type>
+		<joint name="base_to_${prefix}_w">
+			<hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+		</joint>
+		<actuator name="${prefix}_wheel_motor">
+			<mechanicalReduction>34</mechanicalReduction>
+			<hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+		</actuator>
+	</transmission>
+</xacro:macro>
+</robot>

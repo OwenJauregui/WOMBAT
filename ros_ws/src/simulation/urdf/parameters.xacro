@@ -14,6 +14,10 @@
 <xacro:property name="casterRadius" value="0.0065"/>
 <xacro:property name="casterMass" value="0.012"/>
 
+<xacro:property name="origin_right_wheel" value="0.05 -0.09 0.0"/>
+<xacro:property name="origin_left_wheel" value="0.05 0.09 0.0"/>
+<xacro:property name="rpy_right_wheel" value="-${PI/2} 0 0"/>
+<xacro:property name="rpy_left_wheel" value="${PI/2} 0 0"/>
 <xacro:property name="wheelHeight" value="0.01"/>
 <xacro:property name="wheelRadius" value="0.05"/>
 <xacro:property name="wheelPos" value="0.05"/>
