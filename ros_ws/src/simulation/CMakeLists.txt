@@ -8,11 +8,13 @@ project(simulation)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  gazebo_ros
   geometry_msgs
+  sensor_msgs
+  gazebo_ros
+  std_msgs
+  tf2_ros
   roscpp
   rospy
-  std_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -121,6 +123,12 @@ include_directories(
 # include
   ${catkin_INCLUDE_DIRS}
 )
+
+add_executable(odom_tf
+    src/odom_tf.cpp)
+
+target_link_libraries(odom_tf
+    ${catkin_LIBRARIES})
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}

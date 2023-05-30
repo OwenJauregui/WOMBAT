@@ -16,7 +16,10 @@
 		<arg name="paused" value="$(arg pause)"/>
 		<arg name="use_sim_time" value="true"/>
 	</include>
-	
+
+    <!-- Start node to remap navigation nodes for Gazebo -->
+    <node name="msg_mapping" pkg="simulation" type="msg_mapping.py"/>   
+ 
 	<!-- Spawn WOMBAT -->
 	<param name="robot_description" command="$(find xacro)/xacro --inorder $(find simulation)/urdf/wombat.xacro"/>
 
