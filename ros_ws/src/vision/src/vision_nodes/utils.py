@@ -118,7 +118,7 @@ class Vision():
 class OccGrid():
 
   #constructor
-  def __init__(self, x_g=10, y_g=10, d_g=0.1, z_min=0.5, z_max=1.5, z_floor=0.0, p_occ=0.65, p_free=0.35, p_thresh=0.8, thresh_obst=0.5, thresh_angle=10.0*np.pi/180.0):
+  def __init__(self, x_g=10, y_g=10, d_g=0.1, z_min=0.5, z_max=1.5, z_floor=0.0, p_occ=0.65, p_free=0.35, p_thresh=0.8, thresh_obst=0.5, thresh_angle=10.0*np.pi/180.0, world_rot=np.pi):
     #save attributes
     #grid parameters
     self.x_g = x_g
@@ -148,6 +148,7 @@ class OccGrid():
     self.thresh_obs = thresh_obst
     self.thresh_angle = thresh_angle
     
+    self.world_rotation = world_rot
     #print(self.grid_position.shape)
 
   #laser update
@@ -165,6 +166,8 @@ class OccGrid():
 
     #adjust orientation
     occ_map_angle -= state_odom[2]
+
+    occ_map_angle += self.world_rotation
 
     #adjust orientation range
     occ_map_angle[occ_map_angle > np.pi] -= 2.0*np.pi
