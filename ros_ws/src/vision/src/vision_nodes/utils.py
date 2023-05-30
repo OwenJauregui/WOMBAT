@@ -1,5 +1,7 @@
 #Additional libs
 import numpy as np
+import cv2 as cv
+from pyzbar.pyzbar import decode
 import struct
 
 #Messages
@@ -45,6 +47,31 @@ class Vision():
     #Rotacion camara/mundo
     theta = -3.1416/2
     self.R = np.array([[1.0, 0.0, 0.0], [0.0, np.cos(theta), -np.sin(theta)], [0.0, np.sin(theta), np.cos(theta)]])
+  
+  def decoder(self, image):
+    gray_img = cv.cvtColor(image,0)
+    barcode = decode(gray_img)
+    
+    if len(barcode) != 0:
+      for obj in barcode:
+
+        #get storaged data from qr
+        #(x,y,w,h) = obj.rect
+        QRData = obj.data.decode("utf-8")
+        #QRType = obj.type
+
+        #these are for seeing the qr highlighted
+        #points = obj.polygon
+        #pts = np.array(points, np.int32)
+        #pts = pts.reshape((-1, 1, 2))
+        #cv.polylines(image, [pts], True, (0, 255, 0), 3)
+
+        #string = "Data: " + str(QRData)
+        #cv.putText(image, string, (x,y), cv.FONT_HERSHEY_SIMPLEX,0.8,(255,0,0), 2)
+        
+      return str(QRData)
+    else:
+      return "X"
 
   #Metodo 1: Calcular nube de puntos
   ##Input: 
