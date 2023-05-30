@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+
+<launch>
+
+    <include file="$(find navegation)/launch/nav.launch"/>
+    
+    <include file="$(find rplidar_ros)/launch/rplidar_a1.launch"/>
+
+    <node name="wheels" pkg="simulation" type="wheel_sim.py" output="screen"/>
+    
+    <group ns="occupancy">
+	<rosparam file="$(find vision)/config/params_grid.yaml"/>
+    	<node name="laser" pkg="vision" type="laser_map.py" output="screen"/>
+    </group>
+
+    <node name="rviz_pose" pkg="rviz" type="rviz" args="-d $(find simulation)/rviz/laser_sim.rviz"/>
+
+</launch>
+
+
+
