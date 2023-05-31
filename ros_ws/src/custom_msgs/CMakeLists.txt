@@ -21,6 +21,10 @@ add_message_files(
     point.msg
     Cell.msg
     GridMap.msg
+    DHT11_msg.msg
+    QR_msg.msg
+    ranges.msg
+    DB_msg.msg
 )
 
 #Messages dependencies
