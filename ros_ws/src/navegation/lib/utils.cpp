@@ -1,4 +1,5 @@
 #include "navegation/utils.h"
+#include <iostream>
 
 /*----------------------------------------------------------
          Start of WOMBAT_Kinematics implementation
@@ -57,6 +58,10 @@ Eigen::Matrix<double, 3, 2> WOMBAT_Kinematics::compute_A(double theta)
     a_mat << this->compute_D(theta), 
              this->compute_Phi(theta);
 
+    std::cout << this->compute_D(theta)   << std::endl
+              << this->compute_Phi(theta) << std::endl
+              << a_mat << std::endl;
+
     return a_mat;
 }
 
@@ -104,6 +109,40 @@ Eigen::Matrix<double, 3, 1> Kalman::estimate(Eigen::Matrix<double, 3, 1>& q, Eig
 }
 
 /*----------------------------------------------------------
+             Start of Odometry implementation
+----------------------------------------------------------*/
+
+Odometry::Odometry(double r, double d, double h)
+{   
+    // Initialize states and create kinematics handler
+    this->q << 0, 
+               0, 
+               0;
+
+    double kns_params[3] = {r, d, h};
+
+    this->kh = new WOMBAT_Kinematics(kns_params);
+}
+
+Odometry::~Odometry()
+{
+    // Delete kinematics handler
+    delete this->kh;
+}
+
+Eigen::Matrix<double, 3, 1> Odometry::get_odom(Eigen::Matrix<double, 2, 1> u, double dt)
+{
+    // Calculate the kinematics for current states
+    Eigen::Matrix<double, 3, 2> a_mat;
+    a_mat = this->kh->compute_A(this->q(2, 0));
+
+    // Calculate the new states
+    this->q += dt*(a_mat*u);
+
+    return this->q;
+}
+
+/*----------------------------------------------------------
           Start of utils namespace implementation
 ----------------------------------------------------------*/
 
@@ -125,4 +164,27 @@ double* utils::euler_to_quat(double roll, double pitch, double yaw)
     q[3] = cr * cp * sy - sr * sp * cy;
 
     return q;
+}
+
+double* utils::quat_to_euler(double w, double x, double y, double z)
+{
+    // Euler angles array
+    double* euler = new double[3];
+
+    // Roll (x-axis rotation)
+    double sinr_cosp = 2 * (w*x + y*z);
+    double cosr_cosp = 1 - 2 * (x*x + y*y);
+    euler[0] = atan2(sinr_cosp, cosr_cosp);
+
+    // Pitch (y-axis rotation)
+    double sinp = sqrt(1 + 2 * (w*y - x*z));
+    double cosp = sqrt(1 - 2 * (w*y - x*z));
+    euler[1] = 2 * atan2(sinp, cosp) - M_PI / 2;
+
+    // Yaw (z-axis rotation)
+    double siny_cosp = 2 * (w*z + x*y);
+    double cosy_cosp = 1 - 2 * (y*y + z*z);
+    euler[2] = atan2(siny_cosp, cosy_cosp);
+
+    return euler;
 }

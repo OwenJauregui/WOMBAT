@@ -1,5 +1,4 @@
-#include "kf.h"
-#include <stdio.h>
+#include "headers/kf.h"
 
 void kf_shutdown(int sig)
 {

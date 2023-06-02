@@ -90,6 +90,7 @@ def main():
                       [r/2*np.sin(q[2,0]) + h*r/d*np.cos(q[2,0]), r/2*np.sin(q[2,0]) - h*r/d*np.cos(q[2,0])],
                       [r/d, -r/d]])
 
+        print(A)
 
         q += (np.dot(A,wheel_speed))*dt
        
@@ -97,7 +98,7 @@ def main():
         pose.y     = q[1, 0]
         pose.theta = q[2, 0]
 
-        pose_pub.publish(pose)
+        # pose_pub.publish(pose)
 
         rate.sleep()
 

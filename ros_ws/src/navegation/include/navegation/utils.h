@@ -19,7 +19,11 @@ class WOMBAT_Kinematics {
         double d_coef[2];
 
     public:
+        
+        // WOMBAT_Kinematics constructor
         WOMBAT_Kinematics(double* kinematic_const);
+        
+        // Compute matrices for kinematics
         Eigen::Matrix<double, 2, 2> compute_D(double theta);
         Eigen::Matrix<double, 1, 2> compute_Phi(double theta);
         Eigen::Matrix<double, 3, 2> compute_A(double theta);
@@ -41,17 +45,45 @@ class Kalman {
         Eigen::Matrix<double, 3, 1> x_hat;
 
     public:
+        
+        // Kalman constructor
         Kalman(Eigen::Matrix<double, 3, 3>& Q_,
                Eigen::Matrix<double, 3, 3>& R_,
                Eigen::Matrix<double, 3, 3>& H_,
                double* kns_params);
-        Kalman(); 
+
+        // Make Kalman new estimation
         Eigen::Matrix<double, 3, 1> estimate(Eigen::Matrix<double, 3, 1>& q, Eigen::Matrix<double, 2, 1>& u, double dt);
         
 };
 
+class Odometry {
+    private:
+    
+        // Kinematic equations
+        WOMBAT_Kinematics* kh;
+
+        // Current odometry states
+        Eigen::Matrix<double, 3,1> q;
+
+    public:
+
+        // Odometry constructor and destructor
+        Odometry(double r, double d, double h);
+        ~Odometry();
+
+        // Calculate odometry for timestep
+        Eigen::Matrix<double, 3, 1> get_odom(Eigen::Matrix<double, 2, 1> u, double dt);       
+};
+
+
+
 namespace utils {
+   
+    // Euler angles and quaternion conversions
     double* euler_to_quat(double roll, double pitch, double yaw);
+    double* quat_to_euler(double w, double x, double y, double z);
+   
 }
 
 #endif

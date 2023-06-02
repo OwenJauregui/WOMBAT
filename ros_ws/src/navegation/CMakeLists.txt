@@ -87,58 +87,14 @@ target_link_libraries(kf
     navegation_ros_utils
 )
 
-#add_library(navegation_utils SHARED
-#    include/navegation/utils.h 
-#    lib/utils.cpp)
+add_executable(odom
+    src/odom.cpp
+)
 
-#target_link_libraries(navegation_utils PUBLIC
-#    Eigen3::Eigen)
+target_link_libraries(odom
+    Eigen3::Eigen
+    ${catkin_LIBRARIES}
+    navegation_utils
+    navegation_ros_utils
+)
 
-# Specify include directories
-#target_include_directories(navegation_utils PUBLIC
-#    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-#    $<INSTALL_INTERFACE:include>)
-
-# Install library and header files
-#install(TARGETS navegation_utils
-#    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION})
-
-###############################################################
-## Add ros_utils library to package
-
-#add_library(navegation_ros_utils SHARED
-#    include/navegation/ros_utils.h
-#    lib/ros_utils.cpp)
-#
-#target_link_libraries(navegation_ros_utils PUBLIC
-#    ${catkin_LIBARIES})
-#
-## Specify include directories
-#target_include_directories(navegation_ros_utils PUBLIC
-#    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-#    $<INSTALL_INTERFACE:include>)
-#
-## Install library and header files
-#install(TARGETS navegation_ros_utils
-#    ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
-#    LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION})
-#
-################################################################
-### Add executables
-#
-#add_executable(kf
-#    src/kf.cpp)
-#
-#target_link_libraries(kf
-#    ${catkin_LIBARIES}
-#    navegation_utils
-#    navegation_ros_utils
-#)
-#
-## Specify include directories
-#target_include_directories(kf PUBLIC
-#    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-#    $<INSTALL_INTERFACE:include>)
-#
-################################################################
