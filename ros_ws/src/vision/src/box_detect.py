@@ -2,7 +2,7 @@
 
 #import ros
 import rospy
-from geometry_msgs.msg import Point, PointStamped
+from geometry_msgs.msg import Point
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 
@@ -17,71 +17,95 @@ from vision_nodes.utils import Vision
 
 def imageCallback(rgb_msg, depth_msg):
 
-    global camera, bridge, box_pub, box_rviz
+    global camera, bridge, box_pub, box_pos
     global lower, upper
 
     img = bridge.imgmsg_to_cv2(rgb_msg, "bgr8")
     depth = bridge.imgmsg_to_cv2(depth_msg)
 
-    # Setup SimpleBlobDetector parameters.
-    params = cv.SimpleBlobDetector_Params()
-    
-    # Change thresholds
-    params.minThreshold = 10
-    params.maxThreshold = 200
+    hsv = cv.cvtColor(img, cv.COLOR_BGR2HSV)
+    mask = cv.inRange(hsv, lower, upper)
+    #mask = cv.blur(mask,(7,7))
+    mask = cv.morphologyEx(mask, cv.MORPH_OPEN, (7,7))
+    mask = cv.morphologyEx(mask, cv.MORPH_CLOSE, (7,7))
+    #mask = cv.dilate(img,(5,5),iterations = 3)
 
-    # Change distance between blobs in pixels
-    params.minDistBetweenBlobs = 20
-    
-    # Filter by Area.
-    params.filterByArea = True
-    params.minArea = 1500
-    
-    # Filter by Circularity
-    params.filterByCircularity = False
-    params.minCircularity = 0.1
-    
-    # Filter by Convexity
-    params.filterByConvexity = False
-    params.minConvexity = 0.87
-    
-    # Filter by Inertia
-    params.filterByInertia = False
-    params.minInertiaRatio = 0.01
-
-    # Set up the detector with default parameters.
-    detector = cv.SimpleBlobDetector(params)
-    
-    # Detect blobs.
-    keypoints = detector.detect(img)
-
-    mask = cv.inRange(img, lower, upper)
-
-    cnts = cv.findContours(mask, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE)
+    cnts = cv.findContours(mask, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_NONE)
     cnts = cnts[0] if len(cnts) == 2 else cnts[1]
 
-    for c in cnts:
-        x,y,w,h = cv.boundingRect(c)
-        cv.rectangle(img, (x, y), (x + w, y + h), (36,255,12), 2)
     if len(cnts) > 0:
-        img_msg = bridge.cv2_to_imgmsg(img, "bgr8")
+        
+        #get color filter contours
+        for c in cnts:
+            x,y,w,h = cv.boundingRect(c)
+            #cv.rectangle(img, (x, y), (x + w, y + h), (36,255,12), 2)
+        
+        # converting image into grayscale image
+        #gray_mask = cv.cvtColor(mask, cv.COLOR_BGR2GRAY)
+
+        # setting threshold of gray image
+        _, threshold = cv.threshold(mask, 127, 255, cv.THRESH_BINARY)
+        
+        # using a findContours() function
+        contours, _ = cv.findContours(threshold, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
+        
+        i = 0
+        
+        # list for storing names of shapes
+        for contour in contours:
+        
+            # here we are ignoring first counter because 
+            # findcontour function detects whole image as shapes
+            if i == 0:
+                i = 1
+                continue
+        
+            # cv.approxPloyDP() function to approximate the shape
+            approx = cv.approxPolyDP(contour, 0.2 * cv.arcLength(contour, True), True)
+            hull = cv.convexHull(contour)
+            #print(hull.shape)
+            
+            # using drawContours() function
+            cv.drawContours(img, [contour], 0, (0, 0, 255), 5)
+        
+            # finding center point of shape
+            M = cv.moments(contour)
+            if M['m00'] != 0.0:
+                x = int(M['m10']/M['m00'])
+                y = int(M['m01']/M['m00'])
+            
+            if len(approx) >= 3 and len(hull) < 7:
+
+                cv.putText(img, 'Box', (x, y), cv.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2)
+
+                #get point in 3d
+                '''point = camera.map_point2d_3d((x,y), img, depth)
+                
+                #prepare point msg
+                img_msg = Point()
+                img_msg.x = point[0]
+                img_msg.y = point[1]
+                img_msg.z = point[2]
+                box_pos.publish(img_msg)
+                '''
+        #publish image to debug
+        img_msg = bridge.cv2_to_imgmsg(threshold, "mono8")
+        #img_msg = bridge.cv2_to_imgmsg(img, "bgr8")
         box_pub.publish(img_msg)
 
     #cv.imshow('mask', mask)
     #cv.imshow('original', img)
 
-
-
             
 
 def main():
 
-    global camera, bridge, box_pub, box_rviz
+    global camera, bridge, box_pub, box_pos
     global lower, upper
 
     #threshholds for yellow detection
-    lower = np.array([22, 93, 0], dtype="uint8")
-    upper = np.array([45, 255, 255], dtype="uint8")
+    lower = np.array([25, 80, 120], dtype="uint8")
+    upper = np.array([35, 255, 255], dtype="uint8")
     #calibration parameters
     #camera rgb
     k = [616.8235473632812, 616.655517578125, 317.11993408203125, 243.79525756835938]
@@ -100,7 +124,7 @@ def main():
     #PUBLISHERS
     #qr publisher
     box_pub = rospy.Publisher("/WOMBAT/vision/box", Image, queue_size=1)  
-    box_rviz = rospy.Publisher("/WOMBAT/vision/rviz_box", PointStamped, queue_size=1)
+    #box_pos = rospy.Publisher("/WOMBAT/vision/rviz_box", Point, queue_size=1)
 
     #SUBSCRIBERS
     #camera subscriber
