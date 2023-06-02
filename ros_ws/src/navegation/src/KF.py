@@ -14,7 +14,7 @@ def rawPoseCallback(raw_pose):
     #states
     global q, x_hat
     #model
-    global A, u
+    global A, u, r, d, h
     #kalman
     global Q,R,Ri,H,Ht,Z,P,K
     #ROS variables
@@ -47,14 +47,14 @@ def rawPoseCallback(raw_pose):
     pose.header.frame_id = "world"
     pose.header.stamp = t
     #pose
-    pose.pose.position.x = raw_pose.x
-    pose.pose.position.y = raw_pose.y
+    pose.pose.position.x = x_hat[0, 0]
+    pose.pose.position.y = x_hat[1, 0]
     pose.pose.position.z = 0.0
     #orientation
-    pose.pose.orientation.w = np.cos(raw_pose.theta * 0.5)
+    pose.pose.orientation.w = np.cos(x_hat[2, 0] * 0.5)
     pose.pose.orientation.x = 0.0
     pose.pose.orientation.y = 0.0
-    pose.pose.orientation.z = np.sin(raw_pose.theta * 0.5)
+    pose.pose.orientation.z = np.sin(x_hat[2, 0] * 0.5)
     
     #publish message
     KF_pub.publish(pose)
@@ -73,7 +73,7 @@ def main():
     #states
     global q, x_hat
     #model
-    global A, u
+    global A, u, r, d, h
     #kalman
     global Q,R,Ri,H,Ht,Z,P,K
     #ROS variables
@@ -113,9 +113,9 @@ def main():
                 [0.0, 0.0, 1.0]])
     Ri = np.linalg.inv(R)
 
-    H = np.array([[0.0, 0.0, 0.0],
+    H = np.array([[1.0, 0.0, 0.0],
                 [0.0, 1.0, 0.0],
-                [0.0, 0.0, 0.0]])
+                [0.0, 0.0, 1.0]])
     Ht = H.T
 
     Z = np.dot(H,q)
