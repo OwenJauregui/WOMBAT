@@ -4,7 +4,8 @@
 import rospy
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
-from custom_msgs.msg import QR_msg
+from std_msgs.msg import String
+from visualization_msgs.msg import Marker
 #import message filters utility
 import message_filters
 
@@ -26,14 +27,14 @@ def imageCallback(rgb_msg, depth_msg):
         point = camera.map_point2d_3d(pos, img, depth)
 
         if len(point) != 0:
-            #prepare msg
-            qrdata = QR_msg() 
-            qrdata.id.data = id
-            qrdata.pos.x = point[0]
-            qrdata.pos.y = point[1]
-            qrdata.pos.z = point[2]
+
+            #prepare msg to esp32
+            qrdata = String() 
+            qrdata.data = id
 
             qr_pub.publish(qrdata)
+
+            #prepare marker to map
 
             
 def main():
@@ -57,8 +58,8 @@ def main():
 
     #PUBLISHERS
     #qr publisher
-    qr_pub = rospy.Publisher("/WOMBAT/vision/qr", QR_msg, queue_size=1)  
-    #qr_rviz = rospy.Publisher("/WOMBAT/vision/box", PointStamped, queue_size=1)
+    qr_pub = rospy.Publisher("/WOMBAT/vision/qr", String, queue_size=1)  
+    qr_rviz = rospy.Publisher("/WOMBAT/vision/box", Marker, queue_size=1)
 
     #SUBSCRIBERS
     #camera subscriber
