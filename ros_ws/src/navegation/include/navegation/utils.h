@@ -21,7 +21,7 @@ class WOMBAT_Kinematics {
     public:
         
         // WOMBAT_Kinematics constructor
-        WOMBAT_Kinematics(double* kinematic_const);
+        WOMBAT_Kinematics(double r_, double d_, double h_);
         
         // Compute matrices for kinematics
         Eigen::Matrix<double, 2, 2> compute_D(double theta);
@@ -50,7 +50,9 @@ class Kalman {
         Kalman(Eigen::Matrix<double, 3, 3>& Q_,
                Eigen::Matrix<double, 3, 3>& R_,
                Eigen::Matrix<double, 3, 3>& H_,
-               double* kns_params);
+               double r,
+               double d,
+               double h);
 
         // Make Kalman new estimation
         Eigen::Matrix<double, 3, 1> estimate(Eigen::Matrix<double, 3, 1>& q, Eigen::Matrix<double, 2, 1>& u, double dt);
@@ -61,7 +63,7 @@ class Odometry {
     private:
     
         // Kinematic equations
-        WOMBAT_Kinematics* kh;
+        WOMBAT_Kinematics* kns_h;
 
         // Current odometry states
         Eigen::Matrix<double, 3,1> q;
@@ -69,14 +71,31 @@ class Odometry {
     public:
 
         // Odometry constructor and destructor
-        Odometry(double r, double d, double h);
+        Odometry(double r, double d);
         ~Odometry();
 
         // Calculate odometry for timestep
-        Eigen::Matrix<double, 3, 1> get_odom(Eigen::Matrix<double, 2, 1> u, double dt);       
+        Eigen::Matrix<double, 3, 1> compute_odom(Eigen::Matrix<double, 2, 1>& u, double dt);       
 };
 
+class Control {
+    private:
 
+        // Control constant coeficients
+        Eigen::Matrix<double, 2, 2> k;
+
+        // Kinematic equations
+        WOMBAT_Kinematics* kns_h;
+
+    public:
+
+        // Control constructor and destructor
+        Control(double k1, double k2, double r, double d);
+        ~Control();
+
+        // Calculate odometry for timestep
+        Eigen::Matrix<double, 2, 1> control_position(Eigen::Matrix<double, 3, 1>& q, Eigen::Matrix<double, 2, 1>& qd, double dt);
+};
 
 namespace utils {
    

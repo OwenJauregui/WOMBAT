@@ -51,7 +51,7 @@ def main():
 
     r = 0.05 #wheel radius
     d = 0.08 #distance between wheels
-    h = 0.02 #distance between center and new point
+    h = 0.0 #distance between center and new point
 
     global q, wheel_speed, t
     
@@ -65,7 +65,7 @@ def main():
     pose_pub = rospy.Publisher("/WOMBAT/navegation/odometry", Pose2D, queue_size = 10)
     #rviz_pose = rospy.Publisher("WOMBAT/navegation/rvizPose", PoseStamped, queue_size=10)
 
-    # kf_sub   = rospy.Subscriber("/WOMBAT/navegation/pose", PoseStamped, kalmanPosCallback, queue_size = 10)
+    #kf_sub   = rospy.Subscriber("/WOMBAT/navegation/pose", PoseStamped, kalmanPosCallback, queue_size = 10)
 
     l_sub    = rospy.Subscriber(l_speed, Float32, leftVelCallback, queue_size = 10)
 
@@ -85,20 +85,27 @@ def main():
             dt += 1     
 
         t = temp
-
+       
+        ''' 
         A = np.array([[r/2*np.cos(q[2,0]) - h*r/d*np.sin(q[2,0]), r/2*np.cos(q[2,0]) + h*r/d*np.sin(q[2,0])],
                       [r/2*np.sin(q[2,0]) + h*r/d*np.cos(q[2,0]), r/2*np.sin(q[2,0]) - h*r/d*np.cos(q[2,0])],
                       [r/d, -r/d]])
+        '''
 
-        print(A)
+        A = np.array([[np.cos(q[2,0]), 0],
+                      [np.sin(q[2,0]), 0],
+                      [0             , 1]])        
 
-        q += (np.dot(A,wheel_speed))*dt
+        B = np.array([[r/2, r/2],
+                      [r/d, -r/d]])
+
+        q += (np.dot(np.dot(A, B),wheel_speed))*dt
        
         pose.x     = q[0, 0]
         pose.y     = q[1, 0]
         pose.theta = q[2, 0]
 
-        # pose_pub.publish(pose)
+        pose_pub.publish(pose)
 
         rate.sleep()
 

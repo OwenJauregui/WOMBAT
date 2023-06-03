@@ -98,3 +98,14 @@ target_link_libraries(odom
     navegation_ros_utils
 )
 
+add_executable(control
+    src/control.cpp
+)
+
+target_link_libraries(control
+    Eigen3::Eigen
+    ${catkin_LIBRARIES}
+    navegation_utils
+    navegation_ros_utils
+)
+

@@ -18,7 +18,7 @@ def rawPoseCallback(raw_pose):
     #kalman
     global Q,R,Ri,H,Ht,Z,P,K
     #ROS variables
-    global pose, KF_pub
+    global pose, KF_pub, pose_sim
     #time
     global t
 
@@ -32,16 +32,16 @@ def rawPoseCallback(raw_pose):
     if dt < 0:
         dt += 1
     t = temp
+    dt = 0.01 
     
-    #kalman
-    x_hat += (np.dot(A,u) + np.dot(K,(Z - np.dot(H,x_hat))))*dt
-    P += (Q - np.dot(np.dot(K,H),P))*dt 
-
     #update values
-    Z = np.dot(H,q)
-    K = np.dot(np.dot(P,Ht),Ri)
+    Z = q
+    K = np.dot(P,Ri)
 
-    
+    #kalman
+    x_hat += (np.dot(A,u) + np.dot(K,(Z - x_hat)))*dt
+    P += (Q - np.dot(K,P))*dt 
+
     #save message
     #header
     pose.header.frame_id = "world"
@@ -56,6 +56,14 @@ def rawPoseCallback(raw_pose):
     pose.pose.orientation.y = 0.0
     pose.pose.orientation.z = np.sin(x_hat[2, 0] * 0.5)
     
+    pose2d = Pose2D()
+
+    pose2d.x = x_hat[0, 0]
+    pose2d.y = x_hat[1, 0]
+    pose2d.theta = x_hat[2, 0]
+
+    pose_sim.publish(pose2d)
+
     #publish message
     KF_pub.publish(pose)
 
@@ -77,7 +85,7 @@ def main():
     #kalman
     global Q,R,Ri,H,Ht,Z,P,K
     #ROS variables
-    global pose, KF_pub
+    global pose, KF_pub, pose_sim
     #time
     global t
 
@@ -108,9 +116,9 @@ def main():
                 [0.0, 1.0, 0.0],
                 [0.0, 0.0, 1.0]])
 
-    R = np.array([[1.0, 0.0, 0.0],
-                [0.0, 1.0, 0.0],
-                [0.0, 0.0, 1.0]])
+    R = np.array([[1, 0.0, 0.0],
+                [0.0, 1, 0.0],
+                [0.0, 0.0, 1]])
     Ri = np.linalg.inv(R)
 
     H = np.array([[1.0, 0.0, 0.0],
@@ -144,6 +152,7 @@ def main():
     
     #estimation publisher
     KF_pub = rospy.Publisher("/WOMBAT/navegation/pose", PoseStamped, queue_size = 10)
+    pose_sim = rospy.Publisher("/WOMBAT/navegation/pose2D", Pose2D, queue_size = 10)
 
     #callback
     rospy.spin()

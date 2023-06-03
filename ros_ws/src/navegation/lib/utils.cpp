@@ -1,16 +1,15 @@
 #include "navegation/utils.h"
-#include <iostream>
 
 /*----------------------------------------------------------
          Start of WOMBAT_Kinematics implementation
 ----------------------------------------------------------*/
 
-WOMBAT_Kinematics::WOMBAT_Kinematics(double* kinematic_const)
+WOMBAT_Kinematics::WOMBAT_Kinematics(double r_, double d_, double h_)
 {
     // Kinematic values
-    this->r = kinematic_const[0];
-    this->d = kinematic_const[1];
-    this->h = kinematic_const[2];
+    this->r = r_;
+    this->d = d_;
+    this->h = h_;
 
     // Phi matrix coeficients
     this->phi_coef = this->r/this->d;
@@ -58,10 +57,6 @@ Eigen::Matrix<double, 3, 2> WOMBAT_Kinematics::compute_A(double theta)
     a_mat << this->compute_D(theta), 
              this->compute_Phi(theta);
 
-    std::cout << this->compute_D(theta)   << std::endl
-              << this->compute_Phi(theta) << std::endl
-              << a_mat << std::endl;
-
     return a_mat;
 }
 
@@ -72,7 +67,9 @@ Eigen::Matrix<double, 3, 2> WOMBAT_Kinematics::compute_A(double theta)
 Kalman::Kalman(Eigen::Matrix<double, 3, 3>& Q_,
                Eigen::Matrix<double, 3, 3>& R_,
                Eigen::Matrix<double, 3, 3>& H_,
-               double* kns_params)
+               double r,
+               double d,
+               double h)
 {
     // Matrices given
     this->Q  = Q_;
@@ -92,7 +89,7 @@ Kalman::Kalman(Eigen::Matrix<double, 3, 3>& Q_,
     this->K  = this->P*this->Ht*this->Ri;
 
     // Create new kinematic equations handler
-    this->B = WOMBAT_Kinematics(kns_params).compute_A(0);
+    this->B = WOMBAT_Kinematics(r, d, h).compute_A(0);
 }
 
 Eigen::Matrix<double, 3, 1> Kalman::estimate(Eigen::Matrix<double, 3, 1>& q, Eigen::Matrix<double, 2, 1>& u, double dt)
@@ -112,34 +109,66 @@ Eigen::Matrix<double, 3, 1> Kalman::estimate(Eigen::Matrix<double, 3, 1>& q, Eig
              Start of Odometry implementation
 ----------------------------------------------------------*/
 
-Odometry::Odometry(double r, double d, double h)
+Odometry::Odometry(double r, double d)
 {   
     // Initialize states and create kinematics handler
     this->q << 0, 
                0, 
                0;
 
-    double kns_params[3] = {r, d, h};
-
-    this->kh = new WOMBAT_Kinematics(kns_params);
+    this->kns_h = new WOMBAT_Kinematics(r, d, 0);
 }
 
 Odometry::~Odometry()
 {
     // Delete kinematics handler
-    delete this->kh;
+    delete this->kns_h;
 }
 
-Eigen::Matrix<double, 3, 1> Odometry::get_odom(Eigen::Matrix<double, 2, 1> u, double dt)
+Eigen::Matrix<double, 3, 1> Odometry::compute_odom(Eigen::Matrix<double, 2, 1>& u, double dt)
 {
     // Calculate the kinematics for current states
     Eigen::Matrix<double, 3, 2> a_mat;
-    a_mat = this->kh->compute_A(this->q(2, 0));
+    a_mat = this->kns_h->compute_A(this->q(2, 0));
 
     // Calculate the new states
     this->q += dt*(a_mat*u);
 
     return this->q;
+}
+
+/*----------------------------------------------------------
+              Start of Control implementation
+----------------------------------------------------------*/
+
+Control::Control(double k1, double k2, double r, double d)
+{
+    // Create kinematics handler
+    this->kns_h =  new WOMBAT_Kinematics(r, d, 0);
+    
+    // Set control constants
+    this->k     << k1, 0,
+                   0, k2;
+}
+
+Control::~Control()
+{
+    delete this->kns_h;
+}
+
+Eigen::Matrix<double, 2, 1> Control::control_position(Eigen::Matrix<double, 3, 1>& q, Eigen::Matrix<double, 2, 1>& qd, double dt)
+{
+    // Calculate the state difference to the desired states
+    Eigen::Matrix<double, 2, 1> qe = q.block(0,0,2,1) - qd;
+    
+    // Obtain the D matrix
+    Eigen::Matrix<double, 2, 2> d_mat = kns_h->compute_D(q(2,0));
+
+    // Compute the control
+    Eigen::Matrix<double, 2, 1> u;
+    u = d_mat*(-this->k)*qe;
+
+    return u;
 }
 
 /*----------------------------------------------------------

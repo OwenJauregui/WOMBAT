@@ -65,13 +65,13 @@ int main(int argc, char** argv)
     std::string right_topic;
     nh.param<std::string>("/navigation/topics/vel_r", right_topic, "/WOMBAT/navegation/rightSpeed");
 
-    double kns[3];
+    double r, d, h;
 
-    nh.param<double>("/navigation/model_args/radius", kns[0], 1);
+    nh.param<double>("/navigation/model_args/radius", r, 0.05);
 
-    nh.param<double>("/navigation/model_args/distance", kns[1], 1);
+    nh.param<double>("/navigation/model_args/distance", d, 0.08);
 
-    nh.param<double>("/navigation/model_args/displacement", kns[2], 1);
+    nh.param<double>("/navigation/model_args/displacement", h, 0.02);
 
     // Create kalman filter handler
 
@@ -90,7 +90,7 @@ int main(int argc, char** argv)
          0, 1, 0,
          0, 0, 1;
 
-    kf::kh = new Kalman(Q, R, H, kns);
+    kf::kh = new Kalman(Q, R, H, r, d, h);
 
     // Create ROS subscribers
     ros::Subscriber pose_sub = nh.subscribe("/WOMBAT/navegation/odometry", 10, pose_callback);

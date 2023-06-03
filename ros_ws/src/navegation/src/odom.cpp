@@ -36,13 +36,13 @@ int main(int argc, char** argv)
 
     double r, d;
 
-    nh.param<double>("/navigation/model_args/radius", r, 1);
+    nh.param<double>("/navigation/model_args/radius", r, 0.05);
 
-    nh.param<double>("/navigation/model_args/distance", d, 1);
+    nh.param<double>("/navigation/model_args/distance", d, 0.08);
 
     // Create odometry handler
 
-    Odometry odomh = Odometry(r, d, 0.02);
+    Odometry odomh = Odometry(r, d);
 
     // Create ROS subscribers
     ros::Subscriber left_sub = nh.subscribe(left_topic, 10, left_wheel_callback);
@@ -71,7 +71,7 @@ int main(int argc, char** argv)
         dt = ros_utils::dt_and_swp(t, ros::Time::now());
 
         // Compute odometry
-        q = odomh.get_odom(odom::u, dt); 
+        q = odomh.compute_odom(odom::u, dt); 
 
         // Set values to message and publish it
         pose_2d_msg.x     = q(0, 0);
