@@ -33,16 +33,16 @@ class Kalman {
     private:
 
         // Kalman matrices
-        Eigen::Matrix<double, 3, 3> Q;
         Eigen::Matrix<double, 3, 3> R;
         Eigen::Matrix<double, 3, 3> Ri;
         Eigen::Matrix<double, 3, 3> H;
         Eigen::Matrix<double, 3, 3> Ht;
-        Eigen::Matrix<double, 3, 3> P;
         Eigen::Matrix<double, 3, 3> K;
-        Eigen::Matrix<double, 3, 2> B;
         Eigen::Matrix<double, 3, 1> Z;
-        Eigen::Matrix<double, 3, 1> x_hat;
+        static Eigen::Matrix<double, 3, 3> Q;
+        static Eigen::Matrix<double, 3, 3> P;
+        static Eigen::Matrix<double, 3, 2> B;
+        static Eigen::Matrix<double, 3, 1> x_hat;
 
     public:
         
@@ -51,8 +51,7 @@ class Kalman {
                Eigen::Matrix<double, 3, 3>& R_,
                Eigen::Matrix<double, 3, 3>& H_,
                double r,
-               double d,
-               double h);
+               double d);
 
         // Make Kalman new estimation
         Eigen::Matrix<double, 3, 1> estimate(Eigen::Matrix<double, 3, 1>& q, Eigen::Matrix<double, 2, 1>& u, double dt);
@@ -90,7 +89,7 @@ class Control {
     public:
 
         // Control constructor and destructor
-        Control(double k1, double k2, double r, double d);
+        Control(double k1, double k2, double r, double d, double h);
         ~Control();
 
         // Calculate odometry for timestep

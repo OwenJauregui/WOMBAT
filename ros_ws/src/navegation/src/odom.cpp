@@ -64,9 +64,6 @@ int main(int argc, char** argv)
     // Call ROS spin once
     while(ros::ok()) {
         
-        // Check for topic messages
-        ros::spinOnce();
-
         // Get the time difference
         dt = ros_utils::dt_and_swp(t, ros::Time::now());
 
@@ -80,6 +77,9 @@ int main(int argc, char** argv)
 
         pose_2d_pub.publish(pose_2d_msg);
         
+        // Check for topic messages
+        ros::spinOnce();
+
         // Sleep
         rate.sleep();
     }

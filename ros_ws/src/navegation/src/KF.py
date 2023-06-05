@@ -95,7 +95,7 @@ def main():
     #parameters
     r = 0.05 #wheel radius
     d = 0.08 #distance between wheels
-    h = 0.02 #distance between center and new point
+    h = 0.00 #distance between center and new point
     
     #             [X, Y, theta]
     q = np.array([[0.0,0.0,0.0]]).T
@@ -151,8 +151,8 @@ def main():
     right_sub = rospy.Subscriber(r_speed, Float32, rightCallback, queue_size = 1)
     
     #estimation publisher
-    KF_pub = rospy.Publisher("/WOMBAT/navegation/pose", PoseStamped, queue_size = 10)
-    pose_sim = rospy.Publisher("/WOMBAT/navegation/pose2D", Pose2D, queue_size = 10)
+    KF_pub = rospy.Publisher("/WOMBAT/navegation/pose_py", PoseStamped, queue_size = 10)
+    pose_sim = rospy.Publisher("/WOMBAT/navegation/pose2D_py", Pose2D, queue_size = 10)
 
     #callback
     rospy.spin()

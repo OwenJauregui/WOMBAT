@@ -71,8 +71,6 @@ int main(int argc, char** argv)
 
     nh.param<double>("/navigation/model_args/distance", d, 0.08);
 
-    nh.param<double>("/navigation/model_args/displacement", h, 0.02);
-
     // Create kalman filter handler
 
     Eigen::Matrix<double, 3, 3> Q; 
@@ -90,7 +88,7 @@ int main(int argc, char** argv)
          0, 1, 0,
          0, 0, 1;
 
-    kf::kh = new Kalman(Q, R, H, r, d, h);
+    kf::kh = new Kalman(Q, R, H, r, d);
 
     // Create ROS subscribers
     ros::Subscriber pose_sub = nh.subscribe("/WOMBAT/navegation/odometry", 10, pose_callback);

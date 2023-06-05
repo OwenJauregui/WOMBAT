@@ -18,7 +18,7 @@ void pose_callback(const geometry_msgs::Pose2D::ConstPtr& pose)
     // Get the time difference
     double dt = ros_utils::dt_and_swp(control::t, ros::Time::now());
 
-    // Make Kalman Filter estimation
+    // Make control calculations
     Eigen::Matrix<double, 2, 1> u = control::ctr_h->control_position(q, control::qd, dt);
 
     // Set values to messages and publish them
@@ -57,12 +57,14 @@ int main(int argc, char** argv)
 
     nh.param<double>("/navigation/model_args/distance", d, 0.08);
 
+    nh.param<double>("/navigation/model_args/displacement", h, 0.02);
+    
     // Asign constant control values
     double k1, k2;
-    k1 = 1;
-    k2 = 2;
+    k1 = 0.1;
+    k2 = 0.2;
 
-    control::ctr_h = new Control(k1, k2, r, d);
+    control::ctr_h = new Control(k1, k2, r, d, h);
 
     // Create ROS subscribers
     ros::Subscriber pose_sub = nh.subscribe("/WOMBAT/navegation/pose2d", 10, pose_callback);

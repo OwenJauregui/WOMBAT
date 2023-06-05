@@ -64,45 +64,48 @@ Eigen::Matrix<double, 3, 2> WOMBAT_Kinematics::compute_A(double theta)
               Start of Kalman implementation
 ----------------------------------------------------------*/
 
+Eigen::Matrix<double, 3, 3> Kalman::Q, Kalman::P;
+Eigen::Matrix<double, 3, 2> Kalman::B;
+Eigen::Matrix<double, 3, 1> Kalman::x_hat;
+
 Kalman::Kalman(Eigen::Matrix<double, 3, 3>& Q_,
                Eigen::Matrix<double, 3, 3>& R_,
                Eigen::Matrix<double, 3, 3>& H_,
                double r,
-               double d,
-               double h)
+               double d)
 {
     // Matrices given
-    this->Q  = Q_;
-    this->R  = R_;
-    this->Ri = R_.inverse();
-    this->H  = H_;
-    this->Ht = H_.transpose();
-    this->P  << 0, 0, 0,
-                0, 0, 0,
-                0, 0, 0;
-    this->Z  << 0,
-                0,
-                0;
-    this->x_hat = this->Z;    
+    Kalman::Q  = Q_;
+    this->R    = R_;
+    this->Ri   = R_.inverse();
+    this->H    = H_;
+    this->Ht   = H_.transpose();
+    Kalman::P  << 0, 0, 0,
+                  0, 0, 0,
+                  0, 0, 0;
+    this->Z    << 0,
+                  0,
+                  0;
+    Kalman::x_hat = this->Z;    
 
     // Calculated matrices
-    this->K  = this->P*this->Ht*this->Ri;
+    this->K  = Kalman::P*this->Ht*this->Ri;
 
     // Create new kinematic equations handler
-    this->B = WOMBAT_Kinematics(r, d, h).compute_A(0);
+    Kalman::B = WOMBAT_Kinematics(r, d, 0).compute_A(0);
 }
 
 Eigen::Matrix<double, 3, 1> Kalman::estimate(Eigen::Matrix<double, 3, 1>& q, Eigen::Matrix<double, 2, 1>& u, double dt)
 {
-    // Make estimations
-    this->x_hat += dt*(this->B*u + this->K*(this->Z - this->H*this->x_hat));
-    this->P += dt*(this->Q - this->K*this->H*this->P);
-
     // Update Z and K
     this->Z = this->H*q;
-    this->K = this->P*this->Ht*this->Ri;
+    this->K = Kalman::P*this->Ht*this->Ri;
+    
+    // Make estimations
+    Kalman::x_hat += dt*(Kalman::B*u + this->K*(this->Z - this->H*Kalman::x_hat));
+    Kalman::P += dt*(Kalman::Q - this->K*this->H*Kalman::P);
 
-    return this->x_hat;
+    return Kalman::x_hat;
 }
 
 /*----------------------------------------------------------
@@ -141,10 +144,10 @@ Eigen::Matrix<double, 3, 1> Odometry::compute_odom(Eigen::Matrix<double, 2, 1>& 
               Start of Control implementation
 ----------------------------------------------------------*/
 
-Control::Control(double k1, double k2, double r, double d)
+Control::Control(double k1, double k2, double r, double d, double h)
 {
     // Create kinematics handler
-    this->kns_h =  new WOMBAT_Kinematics(r, d, 0);
+    this->kns_h =  new WOMBAT_Kinematics(r, d, h);
     
     // Set control constants
     this->k     << k1, 0,
@@ -166,7 +169,7 @@ Eigen::Matrix<double, 2, 1> Control::control_position(Eigen::Matrix<double, 3, 1
 
     // Compute the control
     Eigen::Matrix<double, 2, 1> u;
-    u = d_mat*(-this->k)*qe;
+    u = -d_mat.inverse()*this->k*qe;
 
     return u;
 }
