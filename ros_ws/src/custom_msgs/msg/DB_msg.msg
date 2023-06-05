@@ -1,0 +1,2 @@
+ranges temp 
+ranges hum

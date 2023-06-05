@@ -64,7 +64,7 @@ def main():
 
     #subscribers headers for realsense
     input_rgb = "/camera/color/image_raw"
-    input_depth = "/camera/depth/image_rect_raw"
+    input_depth = "/camera/aligned_depth_to_color/image_raw"
 
     #calibration parameters
     #camera rgb
