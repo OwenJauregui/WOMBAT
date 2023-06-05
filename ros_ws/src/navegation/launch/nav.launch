@@ -2,11 +2,12 @@
 
 <launch>
 
-    <node name="odom" pkg="navegation" type="odometry.py" output="screen">
+    <node name="odom" pkg="navegation" type="odom" output="screen">
     </node>
-    <node name="kalman" pkg="navegation" type="KF.py" output="screen">
+    <node name="kalman" pkg="navegation" type="kf" output="screen"> 
     </node>
-    <node name="control" pkg="navegation" type="control.py" output="screen">
+
+    <node name="control" pkg="navegation" type="control" output="screen">
     </node>
 
 </launch>

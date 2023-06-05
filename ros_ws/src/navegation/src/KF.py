@@ -14,11 +14,11 @@ def rawPoseCallback(raw_pose):
     #states
     global q, x_hat
     #model
-    global A, u
+    global A, u, r, d, h
     #kalman
     global Q,R,Ri,H,Ht,Z,P,K
     #ROS variables
-    global pose, KF_pub
+    global pose, KF_pub, pose_sim
     #time
     global t
 
@@ -32,30 +32,38 @@ def rawPoseCallback(raw_pose):
     if dt < 0:
         dt += 1
     t = temp
+    dt = 0.01 
     
-    #kalman
-    x_hat += (np.dot(A,u) + np.dot(K,(Z - np.dot(H,x_hat))))*dt
-    P += (Q - np.dot(np.dot(K,H),P))*dt 
-
     #update values
-    Z = np.dot(H,q)
-    K = np.dot(np.dot(P,Ht),Ri)
+    Z = q
+    K = np.dot(P,Ri)
 
-    
+    #kalman
+    x_hat += (np.dot(A,u) + np.dot(K,(Z - x_hat)))*dt
+    P += (Q - np.dot(K,P))*dt 
+
     #save message
     #header
     pose.header.frame_id = "world"
     pose.header.stamp = t
     #pose
-    pose.pose.position.x = raw_pose.x
-    pose.pose.position.y = raw_pose.y
+    pose.pose.position.x = x_hat[0, 0]
+    pose.pose.position.y = x_hat[1, 0]
     pose.pose.position.z = 0.0
     #orientation
-    pose.pose.orientation.w = np.cos(raw_pose.theta * 0.5)
+    pose.pose.orientation.w = np.cos(x_hat[2, 0] * 0.5)
     pose.pose.orientation.x = 0.0
     pose.pose.orientation.y = 0.0
-    pose.pose.orientation.z = np.sin(raw_pose.theta * 0.5)
+    pose.pose.orientation.z = np.sin(x_hat[2, 0] * 0.5)
     
+    pose2d = Pose2D()
+
+    pose2d.x = x_hat[0, 0]
+    pose2d.y = x_hat[1, 0]
+    pose2d.theta = x_hat[2, 0]
+
+    pose_sim.publish(pose2d)
+
     #publish message
     KF_pub.publish(pose)
 
@@ -73,11 +81,11 @@ def main():
     #states
     global q, x_hat
     #model
-    global A, u
+    global A, u, r, d, h
     #kalman
     global Q,R,Ri,H,Ht,Z,P,K
     #ROS variables
-    global pose, KF_pub
+    global pose, KF_pub, pose_sim
     #time
     global t
 
@@ -87,7 +95,7 @@ def main():
     #parameters
     r = 0.05 #wheel radius
     d = 0.08 #distance between wheels
-    h = 0.02 #distance between center and new point
+    h = 0.00 #distance between center and new point
     
     #             [X, Y, theta]
     q = np.array([[0.0,0.0,0.0]]).T
@@ -108,14 +116,14 @@ def main():
                 [0.0, 1.0, 0.0],
                 [0.0, 0.0, 1.0]])
 
-    R = np.array([[1.0, 0.0, 0.0],
-                [0.0, 1.0, 0.0],
-                [0.0, 0.0, 1.0]])
+    R = np.array([[1, 0.0, 0.0],
+                [0.0, 1, 0.0],
+                [0.0, 0.0, 1]])
     Ri = np.linalg.inv(R)
 
-    H = np.array([[0.0, 0.0, 0.0],
+    H = np.array([[1.0, 0.0, 0.0],
                 [0.0, 1.0, 0.0],
-                [0.0, 0.0, 0.0]])
+                [0.0, 0.0, 1.0]])
     Ht = H.T
 
     Z = np.dot(H,q)
@@ -143,7 +151,8 @@ def main():
     right_sub = rospy.Subscriber(r_speed, Float32, rightCallback, queue_size = 1)
     
     #estimation publisher
-    KF_pub = rospy.Publisher("/WOMBAT/navegation/pose", PoseStamped, queue_size = 10)
+    KF_pub = rospy.Publisher("/WOMBAT/navegation/pose_py", PoseStamped, queue_size = 10)
+    pose_sim = rospy.Publisher("/WOMBAT/navegation/pose2D_py", Pose2D, queue_size = 10)
 
     #callback
     rospy.spin()

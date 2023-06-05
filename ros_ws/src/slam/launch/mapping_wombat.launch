@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+
+<launch>
+    <include file="$(find navegation)/launch/start_navigation.launch"/>
+    <include file="$(find rplidar_ros)/launch/rplidar_a1.launch">
+        <param name="serial_port" type="string" value="/dev/ttyUSB1"/>
+    </include>
+    <node name="laser_map" pkg="vision" type="laser_map.py" args=""/>
+</launch>
