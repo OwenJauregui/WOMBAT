@@ -31,6 +31,7 @@ def imageCallback(rgb_msg, depth_msg):
             #prepare msg to esp32
             qrdata = String() 
             qrdata.data = id
+            print(qrdata.data)
 
             qr_pub.publish(qrdata)
 
