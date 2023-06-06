@@ -77,12 +77,12 @@ def main():
 
     #Read point cloyd
     input_odom = "/WOMBAT/navegation/pose"
-    input_laser = rospy.get_param("/occupancy/topics/laser", "scan")
+    input_laser = rospy.get_param("/occupancy/topics/laser", "/scan")
 
     #grid parameters
-    x_grid = rospy.get_param("/occupancy/grid/x", 10)
-    y_grid = rospy.get_param("/occupancy/grid/y", 10)
-    d_grid = rospy.get_param("/occupancy/grid/dim", 1.0)
+    x_grid = rospy.get_param("/occupancy/grid/x", 50)
+    y_grid = rospy.get_param("/occupancy/grid/y", 50)
+    d_grid = rospy.get_param("/occupancy/grid/dim", 0.1)
 
     #algorythm parameters
     p_thresh = rospy.get_param("/occupancy/params/p_thresh", 0.8)
@@ -90,7 +90,7 @@ def main():
     p_free = rospy.get_param("/occupancy/params/p_free", 0.34)
     z_min = rospy.get_param("/occupancy/params/z_min", 0.0)
     z_max = rospy.get_param("/occupancy/params/z_max", 0.5)
-    z_floor = rospy.get_param("/occupancy/params/z_floor", -0.8)
+    z_floor = rospy.get_param("/occupancy/params/z_floor", -0.1)
 
     #interface config
     display = rospy.get_param("occupancy/interface/display", True)
