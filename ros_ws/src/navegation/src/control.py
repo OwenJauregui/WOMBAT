@@ -19,7 +19,7 @@ d = 0.08 #distance between wheels
 h = 0.02 #distance between center and new point
 
 k = np.array([[0.1, 0.0],
-              [0.0, 0.1]])
+              [0.0, 0.2]])
 
 cmd = vel_cmd()
 

@@ -6,9 +6,9 @@ import struct
 
 #Messages
 from std_msgs.msg import Header
-from sensor_msgs import point_cloud2
-from sensor_msgs.msg import PointCloud2, PointField
+from sensor_msgs.msg import PointField
 from visualization_msgs.msg import Marker, MarkerArray
+from nav_msgs.msg import OccupancyGrid
 from custom_msgs.msg import GridMap, Cell
 
 #utilities
@@ -56,7 +56,7 @@ class Vision():
       for obj in barcode:
 
         #get storaged data from qr
-        #(x,y,w,h) = obj.rect
+        (x,y,w,h) = obj.rect
         QRData = obj.data.decode("utf-8")
         #QRType = obj.type
 
@@ -69,9 +69,41 @@ class Vision():
         #string = "Data: " + str(QRData)
         #cv.putText(image, string, (x,y), cv.FONT_HERSHEY_SIMPLEX,0.8,(255,0,0), 2)
         
-      return str(QRData)
+      return str(QRData), [x,y]
     else:
-      return "X"
+      return "X", [0,0]
+    
+  def map_point2d_3d(self, point, img, depth):
+
+    pt = []
+
+    #Crear vector de punto en 2D
+    p_2d = np.array([[point[0]], [point[1]], [1]]) 
+
+    #Obtener z de mapa de profundidad
+    z = self.scale*depth[point[0],point[1]]
+    #print(z)
+    if (z > 0):
+
+      #Calcular el punto en 3D
+      p_3d = z*np.dot(self.K_inv, p_2d)
+
+      #Transformar Camara - Rviz
+      p_3d = np.dot(self.R,  p_3d)
+
+      #Extraer color de la imagen (imagen BGR)
+      b = img[point[0], point[1], 0]
+      g = img[point[0], point[1], 1]
+      r = img[point[0], point[1], 2]
+      a = 255
+
+      #Construir punto
+      rgb = struct.unpack("I", struct.pack('BBBB', b, g, r, a))[0]
+      #print(rgb)
+      pt = [p_3d[0,0], p_3d[1,0], p_3d[2,0], rgb]
+
+    #Regresar nube de puntos
+    return pt
 
   #Metodo 1: Calcular nube de puntos
   ##Input: 
@@ -109,7 +141,7 @@ class Vision():
 
               #Transformar Camara - Rviz
               p_3d = np.dot(self.R,  p_3d)
-
+              #print(p_3d)
               #Extraer color de la imagen (imagen BGR)
               b = img[i, j, 0]
               g = img[i, j, 1]
@@ -118,7 +150,9 @@ class Vision():
 
               #Construir punto
               rgb = struct.unpack("I", struct.pack('BBBB', b, g, r, a))[0]
+              #print(rgb)
               pt = [p_3d[0,0], p_3d[1,0], p_3d[2,0], rgb]
+
               p_cloud.append(pt)
     
     #Regresar nube de puntos
@@ -177,7 +211,7 @@ class OccGrid():
     
     self.world_rotation = world_rot
     #print(self.grid_position.shape)
-
+ 
   #laser update
   def update_laser(self, state_odom, state_laser):
     
@@ -300,6 +334,34 @@ class OccGrid():
         msg_grid.grid.append(cell)
     
     #stamp msg
+    msg_grid.header.stamp = ros_time
+
+    return msg_grid
+  
+  #generate OccupancyGrid msg from nav_msgs
+  def occGrid_msg(self, occ_map, ros_time):
+
+    #initialize msg
+    msg_grid = OccupancyGrid()
+
+    #analize occupacy map
+    for i in range(occ_map.shape[0]):
+      for j in range(occ_map.shape[1]):
+
+        #fill attributes
+        msg_grid.info.resolution = self.d_g
+        msg_grid.info.width = self.x_g
+        msg_grid.info.height = self.y_g
+        #map metadata
+        msg_grid.info.origin.position.x = 0.5*self.map.shape[0]
+        msg_grid.info.origin.position.y = 0.5*self.map.shape[1]
+        msg_grid.info.origin.position.z = 0
+
+        #save map into a 2d array
+        msg_grid.data.append(occ_map[i, j])
+    
+    #stamp msg
+    msg_grid.header.frame_id = "world"
     msg_grid.header.stamp = ros_time
 
     return msg_grid
