@@ -6,8 +6,9 @@ import struct
 
 #Messages
 from std_msgs.msg import Header
-from sensor_msgs.msg import PointCloud2, PointField
+from sensor_msgs.msg import PointField
 from visualization_msgs.msg import Marker, MarkerArray
+from nav_msgs.msg import OccupancyGrid
 from custom_msgs.msg import GridMap, Cell
 
 #utilities
@@ -210,7 +211,7 @@ class OccGrid():
     
     self.world_rotation = world_rot
     #print(self.grid_position.shape)
-
+ 
   #laser update
   def update_laser(self, state_odom, state_laser):
     
@@ -333,6 +334,34 @@ class OccGrid():
         msg_grid.grid.append(cell)
     
     #stamp msg
+    msg_grid.header.stamp = ros_time
+
+    return msg_grid
+  
+  #generate OccupancyGrid msg from nav_msgs
+  def occGrid_msg(self, occ_map, ros_time):
+
+    #initialize msg
+    msg_grid = OccupancyGrid()
+
+    #analize occupacy map
+    for i in range(occ_map.shape[0]):
+      for j in range(occ_map.shape[1]):
+
+        #fill attributes
+        msg_grid.info.resolution = self.d_g
+        msg_grid.info.width = self.x_g
+        msg_grid.info.height = self.y_g
+        #map metadata
+        msg_grid.info.origin.position.x = 0.5*self.map.shape[0]
+        msg_grid.info.origin.position.y = 0.5*self.map.shape[1]
+        msg_grid.info.origin.position.z = 0
+
+        #save map into a 2d array
+        msg_grid.data.append(occ_map[i, j])
+    
+    #stamp msg
+    msg_grid.header.frame_id = "world"
     msg_grid.header.stamp = ros_time
 
     return msg_grid
