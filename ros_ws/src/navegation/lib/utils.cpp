@@ -102,7 +102,7 @@ Eigen::Matrix<double, 3, 1> Kalman::estimate(Eigen::Matrix<double, 3, 1>& q, Eig
     this->K = Kalman::P*this->Ht*this->Ri;
     
     // Make estimations
-    Kalman::x_hat += dt*(Kalman::B*u + this->K*(this->Z - this->H*Kalman::x_hat));
+    Kalman::x_hat += dt*(Kalman::B*u) + this->K*(this->Z - this->H*Kalman::x_hat);
     Kalman::P += dt*(Kalman::Q - this->K*this->H*Kalman::P);
 
     return Kalman::x_hat;
