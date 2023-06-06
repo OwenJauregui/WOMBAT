@@ -6,30 +6,17 @@ void kf_shutdown(int sig)
     ros::shutdown();
 }
 
-void pose_callback(const geometry_msgs::Pose2D::ConstPtr& pose)
+void pub_pose(Eigen::Matrix<double, 3, 1>& x_hat)
 {
-    // Read values from Pose2D message
-    Eigen::Matrix<double, 3, 1> q; 
-    q << pose->x,
-         pose->y,
-         pose->theta;
-
-    // Get the time difference
-    double dt = ros_utils::dt_and_swp(kf::t, ros::Time::now());
-
-    // Make Kalman Filter estimation
-    Eigen::Matrix<double, 3, 1> x_hat = kf::kh->estimate(q, kf::u, dt);
-
-    // Set values to messages and publish them
     kf::pose_msg.header.stamp = kf::t;
 
     kf::pose_msg.pose.position.x = kf::pose_2d_msg.x = x_hat(0, 0);
     kf::pose_msg.pose.position.y = kf::pose_2d_msg.y = x_hat(1, 0);
-    
+
     kf::pose_2d_msg.theta = x_hat(2, 0);
-    
+
     double* quat = utils::euler_to_quat(0, 0, x_hat(2, 0));
-    
+
     kf::pose_msg.pose.orientation.w = quat[0];
     kf::pose_msg.pose.orientation.z = quat[3];
 
@@ -37,6 +24,21 @@ void pose_callback(const geometry_msgs::Pose2D::ConstPtr& pose)
 
     kf::pose_2d_pub.publish(kf::pose_2d_msg);
     kf::pose_pub.publish(kf::pose_msg);
+
+}
+
+void lidar_odom_callback(const geometry_msgs::Pose2D::ConstPtr& pose)
+{
+    // Read values from Pose2D message
+    Eigen::Matrix<double, 3, 1> q; 
+    q << pose->x,
+         pose->y,
+         pose->theta;
+
+    // Make Kalman Filter update
+    Eigen::Matrix<double, 3, 1> x_hat = kf::kh->update(q);
+
+    pub_pose(x_hat);
 }
 
 void left_wheel_callback(const std_msgs::Float32::ConstPtr& vel)
@@ -55,6 +57,8 @@ int main(int argc, char** argv)
     ros::init(argc, argv, "kalman_filter");
     ros::NodeHandle nh;
     
+    ros::Rate rate(100);
+
     // Set shutdown function
     signal(SIGINT, kf_shutdown);
 
@@ -74,14 +78,14 @@ int main(int argc, char** argv)
     // Create kalman filter handler
 
     Eigen::Matrix<double, 3, 3> Q; 
-    Q << 1, 0, 0,
-         0, 1, 0,
-         0, 0, 1;
+    Q << 0.1, 0  , 0,
+         0  , 0.1, 0,
+         0  , 0  , 1;
 
     Eigen::Matrix<double, 3, 3> R;
-    R << 1, 0, 0,
-         0, 1, 0,
-         0, 0, 1;
+    R << 0.1, 0  , 0,
+         0  , 0.1, 0,
+         0  , 0  , 0.05;
 
     Eigen::Matrix<double, 3, 3> H;
     H << 1, 0, 0,
@@ -91,7 +95,7 @@ int main(int argc, char** argv)
     kf::kh = new Kalman(Q, R, H, r, d);
 
     // Create ROS subscribers
-    ros::Subscriber pose_sub = nh.subscribe("/WOMBAT/navegation/odometry", 10, pose_callback);
+    ros::Subscriber pose_sub = nh.subscribe("/WOMBAT/SLAM/odometry", 10, lidar_odom_callback);
     ros::Subscriber left_sub = nh.subscribe(left_topic, 10, left_wheel_callback);
     ros::Subscriber right_sub = nh.subscribe(right_topic, 10, right_wheel_callback);
 
@@ -104,12 +108,27 @@ int main(int argc, char** argv)
     kf::u << 0,
              0;
     kf::t = ros::Time::now();
-    
+    double dt;    
+
     // Initialize header values for msg
     kf::pose_msg.header.frame_id = "world";
 
-    // Call ROS spin once
-    ros::spin();
+    while(ros::ok()) {
+        
+        // Call ROS Spin Once
+        ros::spinOnce();
+        
+        // Get time difference
+        dt = ros_utils::dt_and_swp(kf::t, ros::Time::now());
+        
+        // Make Kalman prediction
+        Eigen::Matrix<double, 3, 1> x_hat = kf::kh->prediction(kf::u, dt);
+
+        // Publish pose
+        pub_pose(x_hat);
+
+        rate.sleep();
+    }
 
     return 0;
 }

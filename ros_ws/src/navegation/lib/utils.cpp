@@ -65,7 +65,6 @@ Eigen::Matrix<double, 3, 2> WOMBAT_Kinematics::compute_A(double theta)
 ----------------------------------------------------------*/
 
 Eigen::Matrix<double, 3, 3> Kalman::Q, Kalman::P;
-Eigen::Matrix<double, 3, 2> Kalman::B;
 Eigen::Matrix<double, 3, 1> Kalman::x_hat;
 
 Kalman::Kalman(Eigen::Matrix<double, 3, 3>& Q_,
@@ -92,18 +91,34 @@ Kalman::Kalman(Eigen::Matrix<double, 3, 3>& Q_,
     this->K  = Kalman::P*this->Ht*this->Ri;
 
     // Create new kinematic equations handler
-    Kalman::B = WOMBAT_Kinematics(r, d, 0).compute_A(0);
+    this->kns_h = new WOMBAT_Kinematics(r, d, 0);
 }
 
-Eigen::Matrix<double, 3, 1> Kalman::estimate(Eigen::Matrix<double, 3, 1>& q, Eigen::Matrix<double, 2, 1>& u, double dt)
+Kalman::~Kalman()
 {
-    // Update Z and K
+    delete this->kns_h;
+}
+
+Eigen::Matrix<double, 3, 1> Kalman::prediction(Eigen::Matrix<double, 2, 1>& u, double dt)
+{
+    // Make estimation
+    Kalman::x_hat += dt*(this->kns_h->compute_A(x_hat(2, 0))*u);
+    Kalman::P += Kalman::Q;
+
+    return Kalman::x_hat;
+}
+
+Eigen::Matrix<double, 3, 1> Kalman::update(Eigen::Matrix<double, 3, 1>& q)
+{
+    // Set the meassurements using the observation matrix
     this->Z = this->H*q;
-    this->K = Kalman::P*this->Ht*this->Ri;
     
-    // Make estimations
-    Kalman::x_hat += dt*(Kalman::B*u) + this->K*(this->Z - this->H*Kalman::x_hat);
-    Kalman::P += dt*(Kalman::Q - this->K*this->H*Kalman::P);
+    // Get Kalman multiplier
+    this->K = Kalman::P*this->Ht*this->Ri;
+
+    // Make corrections and update
+    Kalman::x_hat += this->K*(this->Z - this->H*Kalman::x_hat);
+    Kalman::P = (Eigen::Matrix3d::Identity(3, 3) - this->K*this->H)*Kalman::P;
 
     return Kalman::x_hat;
 }

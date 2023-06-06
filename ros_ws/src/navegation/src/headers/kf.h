@@ -29,9 +29,11 @@ namespace kf {
     static Kalman* kh;
 }
 
+void pub_pose(Eigen::Matrix<double, 3, 1>& x_hat);
+
 void kf_shutdown(int sig);
 
-void pose_callback(const geometry_msgs::Pose2D::ConstPtr& pose);
+void lidar_odom_callback(const geometry_msgs::Pose2D::ConstPtr& pose);
 
 void left_wheel_callback(const std_msgs::Float32::ConstPtr& vel);
 
