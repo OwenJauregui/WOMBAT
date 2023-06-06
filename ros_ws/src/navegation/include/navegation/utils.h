@@ -32,6 +32,9 @@ class WOMBAT_Kinematics {
 class Kalman {
     private:
 
+        // Kinematic equations
+        WOMBAT_Kinematics* kns_h;
+
         // Kalman matrices
         Eigen::Matrix<double, 3, 3> R;
         Eigen::Matrix<double, 3, 3> Ri;
@@ -41,21 +44,23 @@ class Kalman {
         Eigen::Matrix<double, 3, 1> Z;
         static Eigen::Matrix<double, 3, 3> Q;
         static Eigen::Matrix<double, 3, 3> P;
-        static Eigen::Matrix<double, 3, 2> B;
         static Eigen::Matrix<double, 3, 1> x_hat;
 
     public:
         
-        // Kalman constructor
+        // Kalman constructor and destructor
         Kalman(Eigen::Matrix<double, 3, 3>& Q_,
                Eigen::Matrix<double, 3, 3>& R_,
                Eigen::Matrix<double, 3, 3>& H_,
                double r,
                double d);
+        ~Kalman();
 
-        // Make Kalman new estimation
-        Eigen::Matrix<double, 3, 1> estimate(Eigen::Matrix<double, 3, 1>& q, Eigen::Matrix<double, 2, 1>& u, double dt);
+        // Make Kalman new prediction
+        Eigen::Matrix<double, 3, 1> prediction(Eigen::Matrix<double, 2, 1>& u, double dt);
         
+        // Make Kalman new update
+        Eigen::Matrix<double, 3, 1> update(Eigen::Matrix<double, 3, 1>& q);
 };
 
 class Odometry {
