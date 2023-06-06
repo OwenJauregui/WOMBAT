@@ -78,14 +78,14 @@ int main(int argc, char** argv)
     // Create kalman filter handler
 
     Eigen::Matrix<double, 3, 3> Q; 
-    Q << 1, 0, 0,
-         0, 1, 0,
-         0, 0, 1;
+    Q << 0.1, 0  , 0,
+         0  , 0.1, 0,
+         0  , 0  , 1;
 
     Eigen::Matrix<double, 3, 3> R;
-    R << 1, 0, 0,
-         0, 1, 0,
-         0, 0, 1;
+    R << 0.1, 0  , 0,
+         0  , 0.1, 0,
+         0  , 0  , 0.05;
 
     Eigen::Matrix<double, 3, 3> H;
     H << 1, 0, 0,
