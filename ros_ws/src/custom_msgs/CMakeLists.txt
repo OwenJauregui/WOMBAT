@@ -21,6 +21,7 @@ add_message_files(
     point.msg
     Cell.msg
     GridMap.msg
+    Path.msg
 )
 
 #Messages dependencies
