@@ -4,6 +4,13 @@ void control_shutdown(int sig)
 {
     delete control::ctr_h;
     
+    // Stop the motors
+    control::right_msg.data = 0;
+    control::left_msg.data  = 0;
+
+    control::right_pub.publish(control::right_msg);
+    control::left_pub.publish(control::left_msg);
+
     ros::shutdown();
 }
 

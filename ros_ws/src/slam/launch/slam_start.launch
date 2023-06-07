@@ -6,5 +6,5 @@
         <param name="serial_port" type="string" value="/dev/ttyUSB1"/>
     </include>
     <node name="occupacy_grid" pkg="vision" type="laser_occupancy.py"/>
-    <node name="slam" pkg="slam" type="slam"/>
+    <node name="slam" pkg="slam" type="slam" output="screen"/>
 </launch>

@@ -15,6 +15,7 @@ class ICP {
     
     int max_iterations;
     double tolerance;
+    bool map_started;
     Eigen::MatrixX2d past_cloud;
     Eigen::Matrix<double, 3, 3> odom_tf;    
 
