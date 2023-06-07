@@ -7,8 +7,8 @@ from custom_msgs.msg import Path
 from visualization_msgs.msg import Marker
 from nav_msgs.msg import OccupancyGrid
 
-from trajectory_nodes.trajectory_algs import RRT
-from trajectory_nodes.trajectory_algs import map2obs, array2rviz, check_trajectory
+from vision_nodes.trajectory_algs import RRT
+from vision_nodes.trajectory_algs import map2obs, array2rviz, check_trajectory
 
 import numpy as np
 
