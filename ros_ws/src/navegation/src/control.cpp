@@ -76,7 +76,7 @@ int main(int argc, char** argv)
     // Create ROS subscribers
     
     //WOMBAT/navegation/pose2d
-    ros::Subscriber pose_sub = nh.subscribe("/slam_out_pose", 10, pose_callback);
+    ros::Subscriber pose_sub = nh.subscribe("/WOMBAT/navegation/Pose2D", 10, pose_callback);
     ros::Subscriber goal_sub = nh.subscribe("/WOMBAT/navegation/goal", 10, goal_callback);
 
     // Create ROS publishers

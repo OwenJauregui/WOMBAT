@@ -10,26 +10,31 @@ void slam_shutdown(int sig)
 
 void lidar_callback(const sensor_msgs::LaserScan::ConstPtr& laser)
 {  
-    std::cout << "1" << std::endl;	
     // Check number of meassurements
     int point_cloud_size = laser->ranges.size();
     
-    std::cout << "2" << std::endl;
     // Extract laser polar meassurements
     Eigen::MatrixX2d polar_coords(point_cloud_size, 2);
     
-    std::cout << "3.1" << std::endl;
     Eigen::Map<const Eigen::VectorXf> aux_vec(laser->ranges.data(), laser->ranges.size());
-    std::cout << "3.2" << std::endl;
     polar_coords.col(0) = aux_vec.cast<double>();
-    std::cout << "3.3" << std::endl;
     polar_coords.col(1) = utils::linspace(laser->angle_min, laser->angle_max, point_cloud_size);
     
-    std::cout << "4" << std::endl;
+    Eigen::VectorXi not_infinite = (polar_coords.col(0).array() < 100 && polar_coords.col(0).array() > 0).cast<int>();
+
+    // Select only valid points
+    Eigen::MatrixX2d polar_valid(not_infinite.sum(), 2);
+    int new_row = 0;
+    for(int i=0; i < polar_valid.rows(); i++) {
+	if(not_infinite[i]) {
+	    polar_valid.row(new_row) = polar_coords.row(i);
+	    new_row++;
+	}
+    }
+
     // Convert to cartesian points
-    Eigen::MatrixX2d points = utils::polar_to_cartesian(polar_coords);
+    Eigen::MatrixX2d points = utils::polar_to_cartesian(polar_valid);
     
-    std::cout << "5" << std::endl;
     // Estimate transform using ICP
     Eigen::Matrix3d odom_tf = slam::icp_h->icp(points);
 

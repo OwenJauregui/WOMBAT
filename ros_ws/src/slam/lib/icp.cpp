@@ -10,12 +10,10 @@ ICP::ICP(int max_iterations, double tolerance)
     this->max_iterations = max_iterations;
     this->tolerance = tolerance;
     this->map_started = false;
-    std::cout << "ICP" << std::endl;
 }
 
-Eigen::Matrix3d ICP::best_fit_transform(Eigen::MatrixX2d& a_mat, Eigen::MatrixX2d& b_mat)
+Eigen::Matrix3d ICP::best_fit_transform(const Eigen::MatrixX2d& a_mat, const Eigen::MatrixX2d& b_mat)
 {
-    std::cout << "start fit" << std::endl;
     // Calculate the centroid for each poincloud
     Eigen::RowVector2d centroid_A = a_mat.colwise().mean();
     Eigen::RowVector2d centroid_B = b_mat.colwise().mean();
@@ -27,12 +25,14 @@ Eigen::Matrix3d ICP::best_fit_transform(Eigen::MatrixX2d& a_mat, Eigen::MatrixX2
     a_a = a_mat.rowwise() - centroid_A;
     b_b = b_mat.rowwise() - centroid_B;
 
+    std::cout << centroid_A << "  " << centroid_B << std::endl;
+
     // Compute the rotation matrix
     Eigen::Matrix2d h_mat = a_a.transpose() * b_b;
     Eigen::JacobiSVD<Eigen::Matrix2d> svd(h_mat, Eigen::ComputeFullU | Eigen::ComputeFullV);
 
     Eigen::Matrix2d u_mat  = svd.matrixU();
-    Eigen::Matrix2d vt_mat = svd.matrixV();
+    Eigen::Matrix2d vt_mat = svd.matrixV().transpose();
 
     Eigen::Matrix2d r_mat = vt_mat.transpose() * u_mat.transpose();
     
@@ -51,14 +51,13 @@ Eigen::Matrix3d ICP::best_fit_transform(Eigen::MatrixX2d& a_mat, Eigen::MatrixX2
     matrix_T.block<2, 2>(0, 0) = r_mat;
     matrix_T.block<2, 1>(0, 2) = t_vec;
 
-    std::cout << "end fit" << std::endl;
+    std::cout<<matrix_T<<std::endl;
 
     return matrix_T;
 }
     
-Eigen::MatrixX2d ICP::nearest_neighbor(Eigen::MatrixX2d& src, Eigen::MatrixX2d& dst)
+Eigen::MatrixX2d ICP::nearest_neighbor(const Eigen::MatrixX2d& src, const Eigen::MatrixX2d& dst)
 {
-    std::cout << "start nn" << std::endl;
     // Declare resulting matrix with structure [indx, distance]
     Eigen::MatrixX2d nearest_neighbors(src.rows(), 2);
 
@@ -91,13 +90,11 @@ Eigen::MatrixX2d ICP::nearest_neighbor(Eigen::MatrixX2d& src, Eigen::MatrixX2d& 
         nearest_neighbors(i, 1) = min_dist;
     }
 
-    std::cout << "end nn" << std::endl;
     return nearest_neighbors;
 }
 
 Eigen::Matrix<double, 3, 3> ICP::icp(Eigen::MatrixX2d& a_mat, Eigen::MatrixX2d& b_mat, Eigen::Matrix3d& origin)
 {
-    std::cout << "start icp" << std::endl;
     // Create new point sets to better manipulate the mods
     Eigen::Matrix3Xd src(3, a_mat.rows());
     src.setOnes();
@@ -106,7 +103,7 @@ Eigen::Matrix<double, 3, 3> ICP::icp(Eigen::MatrixX2d& a_mat, Eigen::MatrixX2d& 
     src.block(0,0,2,src.cols()) = a_mat.transpose();
 
     // Declare and initialize the previous error
-    double prev_error = 0;
+    double prev_error = 100;
     double mean_error;
 
     // Declare auxiliar matrices
@@ -118,22 +115,19 @@ Eigen::Matrix<double, 3, 3> ICP::icp(Eigen::MatrixX2d& a_mat, Eigen::MatrixX2d& 
     total_t = Eigen::Matrix3d::Identity(3, 3);
 
     // Apply initial pose estimation 
-    if(!(origin.array() == Eigen::Matrix3d::Zero(3, 3).array()).all()) {
-        src << origin*src;
-        total_t *= origin;
-    }
-
-    Eigen::MatrixX2d src_t;
+    src     == origin*src;
+    total_t = origin;
+    
+    Eigen::MatrixX2d src_t(src.cols(),2);
 
     // Make the Closest Point iterations
     for(int i = 0; i < this->max_iterations; i++) {
-        
-        // Update source transposed
-        src_t = src.block(0,0,2,src.cols()).transpose();        
 
-        // Declare and find nearest neighbors
+        // Update source transposed
+        src_t << (src.block(0,0,2,src.cols())).transpose();        
+	// Declare and find nearest neighbors
         neighbors = this->nearest_neighbor(src_t, b_mat);
-        
+       
         // Select only nearest points from b_mat
         nearest_points = Eigen::MatrixX2d(neighbors.rows(), 2);
 
@@ -149,7 +143,9 @@ Eigen::Matrix<double, 3, 3> ICP::icp(Eigen::MatrixX2d& a_mat, Eigen::MatrixX2d& 
         src = t_matrix*src;
         mean_error = neighbors.col(1).mean();
 
-        if(abs(prev_error - mean_error) < this->tolerance) {
+	std::cout << "error " << mean_error << std::endl;
+
+        if(fabs(prev_error - mean_error) < this->tolerance) {
             break;
         } else {
             prev_error = mean_error;
@@ -159,7 +155,6 @@ Eigen::Matrix<double, 3, 3> ICP::icp(Eigen::MatrixX2d& a_mat, Eigen::MatrixX2d& 
     // Once tolerance or max iterations have been reached, calculate final transform
     // Eigen::MatrixX2d final_cloud = src.block(0,0,2,src.cols()).transpose();
     // t_matrix = best_fit_transform(a_mat, final_cloud);
-    std::cout << "end icp" << std::endl;
     return total_t;
 }
 
@@ -171,20 +166,22 @@ Eigen::Matrix<double, 3, 3> ICP::icp(Eigen::MatrixX2d& a_mat)
 	this->map_started = true;
     } else {
         Eigen::Matrix<double, 3, 3> matrix_T = this->icp(a_mat, this->past_cloud, this->odom_tf);
-        this->odom_tf = matrix_T;
+        // this->odom_tf = matrix_T;
 	
 	// Generate new pointcloud transformed
-	Eigen::Matrix3Xd src(3, a_mat.rows());
-	src.setOnes();
+	// Eigen::Matrix3Xd src(3, a_mat.rows());
+	// src.setOnes();
 
         // Copy a_mat into the src matrix
-        src.block(0,0,2,src.cols()) = a_mat.transpose();
-        src = matrix_T*src;
-	this->past_cloud = src.block(0,0,2,src.cols()).transpose();
-        
-        return matrix_T;
+        // src.block(0,0,2,src.cols()) = a_mat.transpose();
+        // src = matrix_T*src;
+	// this->past_cloud = src.block(0,0,2,src.cols()).transpose();
+    	this->past_cloud = a_mat;
+	return matrix_T;
     }
-    std::cout << "end short icp" << std::endl;
-    return Eigen::Matrix3d::Identity(3, 3);
+
+    std::cout << odom_tf <<std::endl;
+
+    return this->odom_tf;
 }
 
