@@ -19,7 +19,7 @@ def mapCallback(map_msg):
 	global p_start, p_end, sec
 	
 	#print("received map")
-	obs = map2obs(map_msg, 0.8)
+	obs = map2obs(map_msg, 80)
 	
 	if recalc_trajectory:
 		#params path
@@ -40,8 +40,8 @@ def mapCallback(map_msg):
 		if coll:
 			recalc_trajectory = True
 	
-	obs_rviz = array2rviz(obs, 7, [0.5, 0.5, 0.5], [0.0, 1.0, 0.0, 0.7], rospy.Time.now())
-	path_rviz = array2rviz(Et, 4, [0.1, 0.0, 0.0], [1.0, 1.0, 1.0, 0.7], rospy.Time.now())
+	obs_rviz = array2rviz(obs, 7, [0.1, 0.1, 0.1], [1.0, 0.0, 0.0, 0.7], rospy.Time.now())
+	path_rviz = array2rviz(Et, 4, [0.1, 0.0, 0.0], [0.0, 0.0, 1.0, 0.7], rospy.Time.now())
 	
 	#publish trajectory
 	path_msg = Path()
@@ -73,13 +73,13 @@ def main():
 	path_pub = rospy.Publisher("/trajectory_gen/path_msg", Path, queue_size=1)
 	
 	#RRT instance
-	map_topic = rospy.get_param("/trajectory_rrt/topics/input_map", "/occupacy_grid/grid_map")
+	map_topic = rospy.get_param("/trajectory_rrt/topics/input_map", "/map")
 	d = rospy.get_param("/trajectory_rrt/rrt/d", 0.01)
 	x_range = rospy.get_param("/trajectory_rrt/rrt/x_range", [-0.5, 1.0])
 	y_range = rospy.get_param("/trajectory_rrt/rrt/y_range", [-0.5, 0.5])
 	sec = rospy.get_param("/trajectory_rrt/rrt/sec", 0.05)
 	it = rospy.get_param("/trajectory_rrt/rrt/it", 100)
-	
+	print(map_topic)
 	#trajectory params
 	p_start = rospy.get_param("/trajectory_rrt/path/start", [0.0,0.0])
 	p_end = rospy.get_param("/trajectory_rrt/path/end", [0.2,0.3])
@@ -90,9 +90,6 @@ def main():
 	traj_gen = RRT(d , x_range, y_range, sec, it)
 	
 	recalc_trajectory = True
-	
-	#initalize timer
-	rate = rospy.Rate(15)
 	
 	rospy.spin()
 	

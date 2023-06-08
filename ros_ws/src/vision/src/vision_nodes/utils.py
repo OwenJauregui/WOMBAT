@@ -179,7 +179,7 @@ class Vision():
 class OccGrid():
 
   #constructor
-  def __init__(self, x_g=10, y_g=10, d_g=0.1, z_min=0.5, z_max=1.5, z_floor=0.0, p_occ=0.65, p_free=0.35, p_thresh=0.8, thresh_obst=0.5, thresh_angle=10.0*np.pi/180.0, world_rot=np.pi):
+  def __init__(self, x_g=10, y_g=10, d_g=0.1, z_min=0.5, z_max=1.5, z_floor=0.0, p_occ=0.8, p_free=0.5, p_thresh=0.8, thresh_obst=0.1, thresh_angle=1.0*np.pi/180.0, world_rot=np.pi):
     #save attributes
     #grid parameters
     self.x_g = x_g
@@ -353,8 +353,8 @@ class OccGrid():
         msg_grid.info.width = self.x_g
         msg_grid.info.height = self.y_g
         #map metadata
-        msg_grid.info.origin.position.x = 0.5*self.map.shape[0]
-        msg_grid.info.origin.position.y = 0.5*self.map.shape[1]
+        msg_grid.info.origin.position.x = -self.d_g*0.5*self.map.shape[0]
+        msg_grid.info.origin.position.y = -self.d_g*0.5*self.map.shape[1]
         msg_grid.info.origin.position.z = 0
 
         #save map into a 2d array
