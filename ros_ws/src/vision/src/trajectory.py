@@ -15,13 +15,24 @@ import numpy as np
 
 #callback
 def goalCallback(goal):
-	global p_end
+	global p_end, obs, Et
 
 	#update new goal
 	x = goal.x
 	y = goal.y
 
 	p_end = [x,y]
+	newGoal = True
+
+	#params path
+	start = np.array([[p_start[0], p_start[1]]])
+	target = np.array([[p_end[0], p_end[1]]])
+	#calculate path
+	Et = traj_gen.gen_traj(start, target, np.array(obs)[:, 0, 0:2])
+	
+	if Et.shape[0] > 0:
+		Et = traj_gen.simplify_trajectory(Et, np.array(obs)[:, 0, 0:2])
+
 
 def poseCallback(odom):
 	global p_start
@@ -34,9 +45,8 @@ def poseCallback(odom):
 
 def mapCallback(map_msg):
 	global obs_pub, traj_pub, path_pub
-	global traj_gen, recalc_trajectory, Et
+	global traj_gen, recalc_trajectory, Et, obs
 	global p_start, p_end, sec
-	
 	
 	#print("received map")
 	#view obstacles on rviz
@@ -44,46 +54,48 @@ def mapCallback(map_msg):
 	obs_rviz = array2rviz(obs, 7, [0.1, 0.1, 0.1], [1.0, 0.0, 0.0, 0.7], rospy.Time.now())
 	#publish msg
 	obs_pub.publish(obs_rviz)
-	
-	#calculate path
-	if len(p_end)==2:
-		print("goal is set")
+
+	#verify for a path
+	if len(Et) > 0:
+
+		#verify path without collisions
+		coll = check_trajectory(Et, obs, sec)
+		if coll:
+			recalc_trajectory = True
 		if recalc_trajectory:
-			print("recalc traj")
+			
 			#params path
 			start = np.array([[p_start[0], p_start[1]]])
 			target = np.array([[p_end[0], p_end[1]]])
 			#calculate path
 			Et = traj_gen.gen_traj(start, target, np.array(obs)[:, 0, 0:2])
+			#print(Et)
 			
 			if Et.shape[0] > 0:
 				Et = traj_gen.simplify_trajectory(Et, np.array(obs)[:, 0, 0:2])
 			
 				#print(Et.shape)
 				recalc_trajectory = False
-		else:
-			#verify path without collisions
-			coll = check_trajectory(Et, obs, sec)
+				#verify path without collisions
+				coll = check_trajectory(Et, obs, sec)
+				if not coll:
+					#publish point from path
+					path_rviz = array2rviz(Et, 4, [0.1, 0.0, 0.0], [0.0, 0.0, 1.0, 0.7], rospy.Time.now())
 			
-			if coll:
-				recalc_trajectory = True
+					#publish trajectory
+					path_msg = Path()
+					path_msg.header.stamp = rospy.Time.now()
+					path_msg.header.frame_id = "map"
+					path_msg.path = path_rviz.points
+					#print(path_msg.path)
+
+					#publish path on rviz
+					traj_pub.publish(path_rviz)
+					
+					#publish path msg
+					path_pub.publish(path_msg)
+
 		
-		path_rviz = array2rviz(Et, 4, [0.1, 0.0, 0.0], [0.0, 0.0, 1.0, 0.7], rospy.Time.now())
-			
-		#publish trajectory
-		path_msg = Path()
-		path_msg.header.stamp = rospy.Time.now()
-		path_msg.header.frame_id = "map"
-		path_msg.path = path_rviz.points
-
-		#publish path on rviz
-		traj_pub.publish(path_rviz)
-		
-		#publish path msg
-		path_pub.publish(path_msg)
-	
-
-
 def main():
 
 	global traj_pub, obs_pub, path_pub
@@ -103,21 +115,21 @@ def main():
 	it = rospy.get_param("/trajectory_rrt/rrt/it", 100)
 	#print(map_topic)
 	#trajectory params
+	Et = []
 	p_start =  []
 	p_end =  []
 	
-	#create instance publisher
-	traj_pub = rospy.Publisher("/trajectory_gen/path", Marker, queue_size=1)
-	obs_pub = rospy.Publisher("/trajectory_gen/obs", Marker, queue_size=1)
-	path_pub = rospy.Publisher("/trajectory_gen/path_msg", Path, queue_size=1)
+	#create publisher
+	#rviz 
+	traj_pub = rospy.Publisher("/WOMBAT/trajectory_gen/path", Marker, queue_size=1)
+	obs_pub = rospy.Publisher("/WOMBAT/trajectory_gen/obs", Marker, queue_size=1)
+	#msg
+	path_pub = rospy.Publisher("/WOMBAT/trajectory_gen/path_msg", Path, queue_size=1)
 
 	#subscriber
 	map_sub = rospy.Subscriber(map_topic, OccupancyGrid, mapCallback)
 	pose_sub = rospy.Subscriber("/WOMBAT/navegation/pose", PoseStamped, poseCallback)
-	goal_sub = rospy.Subscriber("/WOMBAT/navegation/endP", Pose2D, goalCallback)
-	
-	
-	
+	goal_sub = rospy.Subscriber("/WOMBAT/navegation/newGoal", Pose2D, goalCallback)
 	
 	traj_gen = RRT(d , x_range, y_range, sec, it)
 	
