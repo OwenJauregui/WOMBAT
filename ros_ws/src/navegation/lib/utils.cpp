@@ -180,11 +180,18 @@ Eigen::Matrix<double, 2, 1> Control::control_position(Eigen::Matrix<double, 3, 1
     Eigen::Matrix<double, 2, 1> qe = q.block(0,0,2,1) - qd;
     
     // Obtain the D matrix
-    Eigen::Matrix<double, 2, 2> d_mat = kns_h->compute_D(q(2,0));
+    Eigen::Matrix<double, 2, 2> d_mat = this->kns_h->compute_D(q(2,0));
 
     // Compute the control
     Eigen::Matrix<double, 2, 1> u;
     u = -d_mat.inverse()*this->k*qe;
+
+    double omega = this->kns_h->compute_Phi(q(2,0)) * u;
+    
+    // Check maximum angular velocity
+    if(omega > M_PI) {
+        u = (M_PI/omega) * u;
+    }
 
     return u;
 }
