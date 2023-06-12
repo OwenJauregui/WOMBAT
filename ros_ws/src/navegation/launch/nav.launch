@@ -2,8 +2,8 @@
 
 <launch>
 
-    <!--<node name="odom" pkg="navegation" type="odom" output="screen">
-    </node>-->
+    <node name="odom" pkg="navegation" type="odom" output="screen">
+    </node>
     <node name="kalman" pkg="navegation" type="kf" output="screen"> 
     </node>
 

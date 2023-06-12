@@ -15,7 +15,7 @@ import numpy as np
 
 #callback
 def goalCallback(goal):
-	global p_end, obs, Et
+	global p_start, p_end, obs, Et
 
 	#update new goal
 	x = goal.x
@@ -23,7 +23,7 @@ def goalCallback(goal):
 
 	p_end = [x,y]
 	newGoal = True
-
+	print("new goal")
 	#params path
 	start = np.array([[p_start[0], p_start[1]]])
 	target = np.array([[p_end[0], p_end[1]]])
@@ -32,6 +32,27 @@ def goalCallback(goal):
 	
 	if Et.shape[0] > 0:
 		Et = traj_gen.simplify_trajectory(Et, np.array(obs)[:, 0, 0:2])
+		print("trajectory found")
+                #verify path without collisions
+                coll = check_trajectory(Et, obs, sec)
+
+                if not coll:
+                    #publish point from path
+                    path_rviz = array2rviz(Et, 4, [0.1, 0.0, 0.0], [0.0, 0.0, 1.0, 0.7], rospy.Time.now())
+
+                    #publish trajectory
+                    path_msg = Path()
+                    path_msg.header.stamp = rospy.Time.now()
+                    path_msg.header.frame_id = "map"
+                    path_msg.path = path_rviz.points
+                    #print(path_msg.path)
+                                        
+                    #publish path on rviz
+                    traj_pub.publish(path_rviz)
+
+                    #publish path msg
+                    path_pub.publish(path_msg)
+                    print("published")
 
 
 def poseCallback(odom):
@@ -42,6 +63,7 @@ def poseCallback(odom):
 	y = odom.pose.position.y
 
 	p_start = [x,y]
+	#print("position update")
 
 def mapCallback(map_msg):
 	global obs_pub, traj_pub, path_pub
@@ -62,6 +84,7 @@ def mapCallback(map_msg):
 		coll = check_trajectory(Et, obs, sec)
 		if coll:
 			recalc_trajectory = True
+			print("collision detected")
 		if recalc_trajectory:
 			
 			#params path
@@ -94,6 +117,7 @@ def mapCallback(map_msg):
 					
 					#publish path msg
 					path_pub.publish(path_msg)
+					print("trajectory recalculated and published")
 
 		
 def main():
@@ -128,7 +152,7 @@ def main():
 
 	#subscriber
 	map_sub = rospy.Subscriber(map_topic, OccupancyGrid, mapCallback)
-	pose_sub = rospy.Subscriber("/WOMBAT/navegation/pose", PoseStamped, poseCallback)
+	pose_sub = rospy.Subscriber("/slam_out_pose", PoseStamped, poseCallback)
 	goal_sub = rospy.Subscriber("/WOMBAT/navegation/newGoal", Pose2D, goalCallback)
 	
 	traj_gen = RRT(d , x_range, y_range, sec, it)

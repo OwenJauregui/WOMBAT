@@ -77,7 +77,7 @@ class Branch():
       nodo = Node(len(self.nodes), p_new) 
 
       #Heredar camino al origen
-      nodo.path = self.nodes[index].path.copy()
+      nodo.path = self.nodes[index].path[:]
       nodo.path.append(len(self.nodes))
 
       #Agregar nodo a rama
@@ -106,6 +106,7 @@ class RRT():
     self.Bt = None
 
   #Distancia euclidiana
+  @staticmethod
   def euc(p1, p2):
 
     d = np.sqrt(np.power(p1[0,0] - p2[0,0], 2) + np.power(p1[0,1] - p2[0, 1], 2))
@@ -113,6 +114,7 @@ class RRT():
     return d
 
   #Extrapolar puntos
+  @staticmethod
   def extrapolate(p1, p2, d):
 
     #Calcular deltas
@@ -207,6 +209,7 @@ class RRT():
     return np.array(Et)
 
   #Detectar colisiones entre puntos
+  @staticmethod
   def det_collision(p1, p2, obs, sec):
 
     #Calcular lineas
