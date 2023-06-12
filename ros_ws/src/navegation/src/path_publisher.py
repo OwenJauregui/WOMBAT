@@ -12,7 +12,7 @@ import numpy as np
 def pathCallback(path):
 
     global goal
-    goal = np.array(path.path)
+    goal = path.path
     print(goal)
 
 def poseCallback(odom):
@@ -25,13 +25,13 @@ def poseCallback(odom):
 
     if len(goal) > 0:
         
-        d = np.sqrt(np.power(pose[0] - goal[0], 2) + np.power(pose[1] - goal[0], 2))
+        d = np.sqrt(np.power(pose[0] - goal[0].x, 2) + np.power(pose[1] - goal[0].y, 2))
         if d > thresh:
             
             #publish point from path
             point = Pose2D
-            point.x = goal[0]
-            point.y = goal[1]
+            point.x = goal[0].x
+            point.y = goal[0].y
 
             path_pub.publish(point)
         else:
