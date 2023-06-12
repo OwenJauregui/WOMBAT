@@ -38,3 +38,23 @@ Eigen::VectorXd utils::linspace(double min, double max, int steps)
 
     return linspace;
 }
+
+double* utils::euler_to_quat(double roll, double pitch, double yaw)
+{
+    // Element abbreviation
+    double cr = cos(roll * 0.5);
+    double sr = sin(roll * 0.5);
+    double cp = cos(pitch * 0.5);
+    double sp = sin(pitch * 0.5);
+    double cy = cos(yaw * 0.5);
+    double sy = sin(yaw * 0.5);
+
+    double* q = new double[4]; 
+    q[0] = cr * cp * cy + sr * sp * sy;
+    q[1] = sr * cp * cy - cr * sp * sy;
+    q[2] = cr * sp * cy + sr * cp * sy;
+    q[3] = cr * cp * sy - sr * sp * cy;
+
+    return q;
+}
+

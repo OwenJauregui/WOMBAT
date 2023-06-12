@@ -10,6 +10,8 @@ namespace utils {
     Eigen::MatrixX2d polar_to_cartesian(const Eigen::MatrixX2d& polar);
 
     Eigen::VectorXd linspace(double min, double max, int steps);
+
+    double* euler_to_quat(double roll, double pitch, double yaw);
 }
 
 #endif

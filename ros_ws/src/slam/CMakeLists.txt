@@ -65,12 +65,22 @@ target_link_libraries(slam_utils
     Eigen3::Eigen
 )
 
+# KD-Tree library
+add_library(kd_tree SHARED
+    ${LIBRARY_DIR}/kd_tree.cpp)
+target_link_libraries(kd_tree
+    Eigen3::Eigen
+    slam_utils
+)
+
+
 # ICP library
 add_library(slam_icp SHARED
     ${LIBRARY_DIR}/icp.cpp)
 target_link_libraries(slam_icp
     Eigen3::Eigen
     slam_utils
+    kd_tree
 )
 
 ###############################################################
@@ -84,6 +94,17 @@ target_link_libraries(slam
     ${catkin_LIBRARIES}
     Eigen3::Eigen
     slam_icp
+    kd_tree
+    slam_utils
+)
+
+add_executable(test_kd
+    src/test.cpp
+)
+
+target_link_libraries(test_kd
+    Eigen3::Eigen
+    kd_tree
     slam_utils
 )
 

@@ -6,20 +6,26 @@
 
 // Include ROS libaries
 #include <ros/ros.h>
+#include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/Pose2D.h>
 #include <sensor_msgs/LaserScan.h>
 
 #include <signal.h>
 
 namespace slam {
-    // Odometry message
+    // Odometry messages
     static geometry_msgs::Pose2D icp_odom;
+    static geometry_msgs::PoseStamped icp_pose;
 
-    // Odometry publisher
+    // Odometry publishers
     static ros::Publisher icp_pub;
+    static ros::Publisher pose_pub;
 
     // ICP handler
-    static ICP* icp_h; 
+    static ICP* icp_h;
+
+    // Previous transform to origin
+    static Eigen::Matrix3d origin_tf; 
 }
 
 void slam_shutdown(int sig);
