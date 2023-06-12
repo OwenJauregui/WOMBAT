@@ -77,7 +77,7 @@ class Branch():
       nodo = Node(len(self.nodes), p_new) 
 
       #Heredar camino al origen
-      nodo.path = self.nodes[index].path.copy()
+      nodo.path = self.nodes[index].path[:]
       nodo.path.append(len(self.nodes))
 
       #Agregar nodo a rama
@@ -106,6 +106,7 @@ class RRT():
     self.Bt = None
 
   #Distancia euclidiana
+  @staticmethod
   def euc(p1, p2):
 
     d = np.sqrt(np.power(p1[0,0] - p2[0,0], 2) + np.power(p1[0,1] - p2[0, 1], 2))
@@ -113,6 +114,7 @@ class RRT():
     return d
 
   #Extrapolar puntos
+  @staticmethod
   def extrapolate(p1, p2, d):
 
     #Calcular deltas
@@ -137,7 +139,7 @@ class RRT():
     point[0, 0] = (self.x_range[1] - self.x_range[0])*np.random.rand(1) + self.x_range[0]
     point[0, 1] = (self.y_range[1] - self.y_range[0])*np.random.rand(1) + self.y_range[0]
 
-    return point
+    return point 
 
   #Generacion de trayectorias
   def gen_traj(self, Po, Tg, Ob):
@@ -207,6 +209,7 @@ class RRT():
     return np.array(Et)
 
   #Detectar colisiones entre puntos
+  @staticmethod
   def det_collision(p1, p2, obs, sec):
 
     #Calcular lineas
@@ -284,24 +287,29 @@ class RRT():
     return np.array(traj_opt)
     
 def map2obs(map_msg, thresh):
-	
-	obs = []
-	#iteration on cells
-	for i in range(len(map_msg.data)):
-		#verify threshhold
-		if map_msg.data[i] > thresh:
-			ob = np.array([[i//map_msg.info.width, i%map_msg.info.width, 0.0]])
-			
-			obs.append(ob)
-			
-	return np.array(obs)
+  
+  obs = []
+  #iteration on cells
+  for i in range(len(map_msg.data)):
+    #print(map_msg.data[i])
+    #verify threshhold
+    if map_msg.data[i] > thresh:
+      
+      x = map_msg.info.resolution * (i % map_msg.info.width) + map_msg.info.origin.position.x
+      y = map_msg.info.resolution * (i // map_msg.info.width) + map_msg.info.origin.position.y
+      #print(x,y)
+      ob = np.array([[x, y, 0.0]])
+      
+      obs.append(ob)
+      
+  return np.array(obs)
 
 def array2rviz(array, marker, scale, color, time):
 
 	#initialize obstacle array
 	marker_rviz = Marker()
 	marker_rviz.header.stamp = time
-	marker_rviz.header.frame_id = "world"
+	marker_rviz.header.frame_id = "map"
 	marker_rviz.type = marker#list of spheres
 	
 	#define scale and color

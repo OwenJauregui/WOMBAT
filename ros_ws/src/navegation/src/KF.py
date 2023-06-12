@@ -151,7 +151,7 @@ def main():
     right_sub = rospy.Subscriber(r_speed, Float32, rightCallback, queue_size = 1)
     
     #estimation publisher
-    KF_pub = rospy.Publisher("/WOMBAT/navegation/pose_py", PoseStamped, queue_size = 10)
+    KF_pub = rospy.Publisher("/WOMBAT/navegation/pose", PoseStamped, queue_size = 10)
     pose_sim = rospy.Publisher("/WOMBAT/navegation/pose2D_py", Pose2D, queue_size = 10)
 
     #callback

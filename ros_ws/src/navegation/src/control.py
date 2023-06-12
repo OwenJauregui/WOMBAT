@@ -82,7 +82,7 @@ def main():
     left_pub = rospy.Publisher(l_speed, Float32, queue_size=1)
     right_pub = rospy.Publisher(r_speed, Float32, queue_size=1)
 
-    pose_sub = rospy.Subscriber("/WOMBAT/navegation/pose", PoseStamped, newEstimationCallback, queue_size = 10)
+    pose_sub = rospy.Subscriber("/slam_out_pose", PoseStamped, newEstimationCallback, queue_size = 10)
 
     goal_sub = rospy.Subscriber("/WOMBAT/navegation/goal", Pose2D, newGoalCallback, queue_size = 1)
     rospy.spin()
