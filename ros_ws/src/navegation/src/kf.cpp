@@ -27,13 +27,21 @@ void pub_pose(Eigen::Matrix<double, 3, 1>& x_hat)
 
 }
 
-void lidar_odom_callback(const geometry_msgs::Pose2D::ConstPtr& pose)
+void lidar_odom_callback(const geometry_msgs::PoseStamped::ConstPtr& pose)
 {
     // Read values from Pose2D message
     Eigen::Matrix<double, 3, 1> q; 
-    q << pose->x,
-         pose->y,
-         pose->theta;
+    double x, y, theta;
+
+    double* euler = utils::quat_to_euler(pose->pose.orientation.w,
+                                         pose->pose.orientation.x,
+                                         pose->pose.orientation.y,
+                                         pose->pose.orientation.z);    
+    q << pose->pose.position.x,
+         pose->pose.position.y,
+         euler[2];   
+
+    delete euler;
 
     // Make Kalman Filter update
     Eigen::Matrix<double, 3, 1> x_hat = kf::kh->update(q);
