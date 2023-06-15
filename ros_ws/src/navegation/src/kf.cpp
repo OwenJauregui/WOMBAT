@@ -31,7 +31,7 @@ void lidar_odom_callback(const geometry_msgs::PoseStamped::ConstPtr& pose)
 {
     // Read values from Pose2D message
     Eigen::Matrix<double, 3, 1> q; 
-    double x, y, theta;
+    double theta;
 
     double* euler = utils::quat_to_euler(pose->pose.orientation.w,
                                          pose->pose.orientation.x,
@@ -65,7 +65,7 @@ int main(int argc, char** argv)
     ros::init(argc, argv, "kalman_filter");
     ros::NodeHandle nh;
     
-    ros::Rate rate(100);
+    ros::Rate rate(50);
 
     // Set shutdown function
     signal(SIGINT, kf_shutdown);
@@ -91,9 +91,9 @@ int main(int argc, char** argv)
          0  , 0  , 1;
 
     Eigen::Matrix<double, 3, 3> R;
-    R << 0.1, 0  , 0,
-         0  , 0.1, 0,
-         0  , 0  , 0.05;
+    R << 0.01, 0  , 0,
+         0  , 0.01, 0,
+         0  , 0  , 0.001;
 
     Eigen::Matrix<double, 3, 3> H;
     H << 1, 0, 0,
@@ -119,7 +119,7 @@ int main(int argc, char** argv)
     double dt;    
 
     // Initialize header values for msg
-    kf::pose_msg.header.frame_id = "world";
+    kf::pose_msg.header.frame_id = "map";
 
     while(ros::ok()) {
         

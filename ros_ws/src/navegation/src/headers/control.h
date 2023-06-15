@@ -11,6 +11,7 @@
 // Include msgs
 #include "std_msgs/Float32.h"
 #include "geometry_msgs/Pose2D.h"
+#include "geometry_msgs/PoseStamped.h"
 
 namespace control {
 
@@ -30,7 +31,7 @@ namespace control {
 
 void control_shutdown(int sig);
 
-void pose_callback(const geometry_msgs::Pose2D::ConstPtr& pose);
+void pose_callback(const geometry_msgs::PoseStamped::ConstPtr& pose);
 
 void goal_callback(const geometry_msgs::Pose2D::ConstPtr& goal);
 

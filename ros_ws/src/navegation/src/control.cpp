@@ -14,13 +14,22 @@ void control_shutdown(int sig)
     ros::shutdown();
 }
 
-void pose_callback(const geometry_msgs::Pose2D::ConstPtr& pose)
+void pose_callback(const geometry_msgs::PoseStamped::ConstPtr& pose)
 {
     // Read values from Pose2D message
     Eigen::Matrix<double, 3, 1> q; 
-    q << pose->x,
-         pose->y,
-         pose->theta;
+    double theta;
+	
+    double* euler = utils::quat_to_euler(pose->pose.orientation.w,
+                                         pose->pose.orientation.x,
+                                         pose->pose.orientation.y,
+                                         pose->pose.orientation.z);
+
+    q << pose->pose.position.x,
+         pose->pose.position.y,
+         euler[2];
+
+    delete euler;
 
     // Get the time difference
     double dt = ros_utils::dt_and_swp(control::t, ros::Time::now());
@@ -53,10 +62,10 @@ int main(int argc, char** argv)
 
     // Get ROS params
     std::string left_topic;
-    nh.param<std::string>("/navigation/topics/vel_l", left_topic, "/WOMBAT/navegation/leftSpeed");
+    nh.param<std::string>("/navigation/topics/cmd_vel_l", left_topic, "/WOMBAT/navegation/leftSpeed");
 
     std::string right_topic;
-    nh.param<std::string>("/navigation/topics/vel_r", right_topic, "/WOMBAT/navegation/rightSpeed");
+    nh.param<std::string>("/navigation/topics/cmd_vel_r", right_topic, "/WOMBAT/navegation/rightSpeed");
 
     double r, d, h;
 
@@ -76,7 +85,7 @@ int main(int argc, char** argv)
     // Create ROS subscribers
     
     //WOMBAT/navegation/pose2d
-    ros::Subscriber pose_sub = nh.subscribe("/WOMBAT/navegation/Pose2D", 10, pose_callback);
+    ros::Subscriber pose_sub = nh.subscribe("/WOMBAT/SLAM/pose", 10, pose_callback);
     ros::Subscriber goal_sub = nh.subscribe("/WOMBAT/navegation/goal", 10, goal_callback);
 
     // Create ROS publishers

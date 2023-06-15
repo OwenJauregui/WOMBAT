@@ -10,5 +10,6 @@
     <node name="control" pkg="navegation" type="control" output="screen">
     </node>
 
+    <node name="serial" pkg="rosserial_python" type="rosserial.py"/>
 </launch>
 

@@ -189,10 +189,10 @@ Eigen::Matrix<double, 2, 1> Control::control_position(Eigen::Matrix<double, 3, 1
     double omega = this->kns_h->compute_Phi(q(2,0)) * u;
     
     // Check maximum angular velocity
-    if(omega > M_PI) {
-        u = (M_PI/omega) * u;
+    if(omega > M_PI/4) {
+        u = ((M_PI/4)/omega) * u;
     }
-
+    
     return u;
 }
 

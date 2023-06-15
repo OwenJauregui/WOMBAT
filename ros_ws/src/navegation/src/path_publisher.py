@@ -13,7 +13,7 @@ def pathCallback(path):
 
     global goal
     goal = path.path
-    print(goal)
+    #print(goal)
 
 def poseCallback(odom):
     global goal, thresh
@@ -29,7 +29,7 @@ def poseCallback(odom):
         if d > thresh:
             
             #publish point from path
-            point = Pose2D
+            point = Pose2D()
             point.x = goal[0].x
             point.y = goal[0].y
 
@@ -51,7 +51,7 @@ def main():
     path_pub = rospy.Publisher("/WOMBAT/navegation/goal", Pose2D, queue_size=1)
 
     #subscriber
-    pose_sub = rospy.Subscriber("/slam_out_pose", PoseStamped, poseCallback)
+    pose_sub = rospy.Subscriber("/WOMBAT/navegation/pose", PoseStamped, poseCallback)
     path_sub = rospy.Subscriber("/WOMBAT/trajectory_gen/path_msg", Path, pathCallback)
 	
     rospy.spin()
