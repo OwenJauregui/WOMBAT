@@ -67,7 +67,9 @@ int main(int argc, char** argv)
     control::ctr_h = new Control(k1, k2, r, d, h);
 
     // Create ROS subscribers
-    ros::Subscriber pose_sub = nh.subscribe("/WOMBAT/navegation/pose2d", 10, pose_callback);
+    
+    //WOMBAT/navegation/pose2d
+    ros::Subscriber pose_sub = nh.subscribe("/slam_out_pose", 10, pose_callback);
     ros::Subscriber goal_sub = nh.subscribe("/WOMBAT/navegation/goal", 10, goal_callback);
 
     // Create ROS publishers
