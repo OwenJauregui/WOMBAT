@@ -15,7 +15,7 @@ from vision_nodes.utils import Vision
 
 def imageCallback(rgb_msg, depth_msg):
 
-    global qr_pub, bridge, camera
+    global qr_pub, bridge, camera, img_pub
 
     img = bridge.imgmsg_to_cv2(rgb_msg, "bgr8")
     depth = bridge.imgmsg_to_cv2(depth_msg)
@@ -23,7 +23,7 @@ def imageCallback(rgb_msg, depth_msg):
     id, pos = camera.decoder(img)
 
     if id != "X":
-        #img_msg = bridge.cv2_to_imgmsg(image, "bgr8")
+        img_msg = bridge.cv2_to_imgmsg(img, "bgr8")
         point = camera.map_point2d_3d(pos, img, depth)
 
         if len(point) != 0:
@@ -31,16 +31,17 @@ def imageCallback(rgb_msg, depth_msg):
             #prepare msg to esp32
             qrdata = String() 
             qrdata.data = id
-            print(qrdata.data)
+            #print(qrdata.data)
 
             qr_pub.publish(qrdata)
 
             #prepare marker to map
+        img_pub.publish(img_msg)
 
             
 def main():
 
-    global qr_pub, bridge, camera
+    global qr_pub, bridge, camera, img_pub
 
     #calibration parameters
     #camera rgb
@@ -60,7 +61,7 @@ def main():
     #PUBLISHERS
     #qr publisher
     qr_pub = rospy.Publisher("/WOMBAT/vision/qr", String, queue_size=1)  
-    qr_rviz = rospy.Publisher("/WOMBAT/vision/box", Marker, queue_size=1)
+    img_pub = rospy.Publisher("/WOMBAT/vision/qr_viz", Image, queue_size=1)
 
     #SUBSCRIBERS
     #camera subscriber

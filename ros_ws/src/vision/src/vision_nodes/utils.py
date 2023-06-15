@@ -61,13 +61,13 @@ class Vision():
         #QRType = obj.type
 
         #these are for seeing the qr highlighted
-        #points = obj.polygon
-        #pts = np.array(points, np.int32)
-        #pts = pts.reshape((-1, 1, 2))
-        #cv.polylines(image, [pts], True, (0, 255, 0), 3)
+        points = obj.polygon
+        pts = np.array(points, np.int32)
+        pts = pts.reshape((-1, 1, 2))
+        cv.polylines(image, [pts], True, (0, 255, 0), 3)
 
-        #string = "Data: " + str(QRData)
-        #cv.putText(image, string, (x,y), cv.FONT_HERSHEY_SIMPLEX,0.8,(255,0,0), 2)
+        string = "Data: " + str(QRData)
+        cv.putText(image, string, (x,y), cv.FONT_HERSHEY_SIMPLEX,0.8,(255,0,0), 2)
         
       return str(QRData), [x,y]
     else:
