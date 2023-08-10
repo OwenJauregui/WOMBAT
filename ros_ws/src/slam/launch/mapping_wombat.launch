@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+
+<launch>
+    <include file="$(find navegation)/launch/start_navigation.launch"/>
+    <include file="$(find rplidar_ros)/launch/rplidar_a1.launch"/>
+    <include file="$(find hector_slam_launch)/launch/tutorial.launch"/>
+</launch>

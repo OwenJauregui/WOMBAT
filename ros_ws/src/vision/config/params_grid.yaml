@@ -1,0 +1,20 @@
+topics:
+  p_cloud: "/pcloud"
+  laser: "/scan"
+
+grid:
+  x: 25
+  y: 25
+  dim: 0.4
+
+params:
+  p_thresh: 0.8
+  p_occ: 0.95
+  p_free: 0.95
+  z_min: -0.5
+  z_max: 0.5
+  z_floor: -0.8
+
+interface:
+  display: True
+  rviz: True

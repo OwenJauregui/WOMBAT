@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<!-- PuzzleBot differential drive -->
+<robot name="WOMBAT" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+	<!-- files for gazebo costumization -->
+	<xacro:include filename="$(find simulation)/urdf/parameters.xacro" />
+	<xacro:include filename="$(find simulation)/urdf/wombat.gazebo" />
+	<xacro:include filename="$(find simulation)/urdf/macros.xacro" />
+    <xacro:include filename="$(find simulation)/urdf/wheel.xacro"/>
+    <xacro:include filename="$(find simulation)/urdf/camera.xacro"/>
+    <xacro:include filename="$(find simulation)/urdf/lidar.xacro"/>
+    <xacro:include filename="$(find simulation)/urdf/chassis.xacro"/>
+
+	
+
+    <!-- Dummy link to fiz robot chassis -->
+	<link name="base_link">
+	</link>
+
+	<joint name="base_link_to_chassis" type="fixed">
+		<parent link="base_link" />
+		<child link="chassis" />
+        <origin xyz="0.0 0.0 0.0"/>
+	</joint>
+
+    <!-- Place chassis -->
+
+    <xacro:chassis/>
+
+    <!-- Add wheels -->
+    
+    <xacro:wheel prefix="left" rot="${rpy_left_wheel}" origin="${origin_left_wheel}"/>
+    <xacro:wheel prefix="right" rot="${rpy_right_wheel}" origin="${origin_right_wheel}"/>
+
+    <!-- Add camera -->
+
+    <xacro:camera/>	
+
+    <!-- LIDAR-->
+    <xacro:lidar/>
+    
+</robot>

@@ -9,6 +9,7 @@ find_package(catkin REQUIRED COMPONENTS
     roscpp
     rospy
     std_msgs
+    geometry_msgs
     message_generation
 )
 
@@ -16,12 +17,22 @@ find_package(catkin REQUIRED COMPONENTS
 add_message_files(
     FILES
     vel_cmd.msg
+    pixel.msg
+    point.msg
+    Cell.msg
+    GridMap.msg
+    Path.msg
+    DHT11_msg.msg
+    QR_msg.msg
+    ranges.msg
+    DB_msg.msg
 )
 
 #Messages dependencies
 generate_messages(
     DEPENDENCIES
     std_msgs
+    geometry_msgs
 )
 
 catkin_package(

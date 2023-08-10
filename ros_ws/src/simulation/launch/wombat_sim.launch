@@ -1,0 +1,14 @@
+<?xml version="0.0"?>
+
+<launch>
+
+    <include file="$(find simulation)/launch/wombat_gazebo.launch"/>
+
+    <include file="$(find simulation)/launch/wombat_rviz.launch">
+        <arg name="rviz_config" value="$(find simulation)/rviz/WOMBAT_monitor.rviz"/>
+    </include>
+
+    <!-- Start WOMBAT navigation simulation -->
+    <include file="$(find navegation)/launch/start_navigation.launch"/>
+
+</launch>

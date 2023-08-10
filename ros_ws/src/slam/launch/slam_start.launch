@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+
+<launch>
+    <remap from="/slam_out_pose" to="/WOMBAT/SLAM/pose"/>
+    <include file="$(find navegation)/launch/start_navigation.launch"/>
+    <include file="$(find rplidar_ros)/launch/rplidar_a1.launch">
+        <param name="serial_port" type="string" value="/dev/ttyUSB1"/>
+    </include>
+    <include file="$(find hector_slam_launch)/launch/tutorial.launch"/>
+    <node name="trajectory" pkg="vision" type="trajectory.py"/>
+    <node name="path" pkg="navegation" type="path_publisher.py"/>
+    <!--<node name="occupacy_grid" pkg="vision" type="laser_occupancy.py"/>
+    <node name="slam" pkg="slam" type="slam" output="screen"/>-->
+</launch>
